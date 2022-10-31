@@ -9,7 +9,7 @@
   disabled plugins will be renamed as appropriate to <pluginname>.ps1.disabled
   enabled plugins will be renamed as appropriate to <plugin name>.ps1
 
-  To use, run from the vCheck directory or, if you wish to be perverse, copy to the plugins 
+  To use, run from the vCheck directory or, if you wish to be perverse, copy to the plugins
   directory and rename to "ZZ Select Plugins for Next Run.ps1" and run vCheck as normal.
 
   Great for testing plugins.  When done, untick it...
@@ -55,7 +55,7 @@ If ($PluginPath -notmatch 'plugins$') {
 }
 $plugins = Get-ChildItem -Path $PluginPath -Include *.ps1, *.ps1.disabled -Recurse |
    Sort-Object {[int]($_.Name -replace '\D')} |
-   Select FullName, Name, 
+   Select FullName, Name,
           @{Label="Plugin";expression={$_.Name -replace '(.*)\.ps1(?:\.disabled|)$', '$1'}},
           @{Label="Enabled";expression={$_.Name -notmatch '.*\.disabled$'}}
 
@@ -152,7 +152,7 @@ if($result -eq "OK") {
     $newname = $plugin.Plugin + $(If ($listbox.GetItemChecked($i)) {'.ps1'} else {'.ps1.disabled'})
     If ($newname -ne $oldname) {
       If (Test-Path (($plugin.FullName | Split-Path) + "\" + $newname)) {
-        Write-Warning "Attempting to rename ""$oldname"" to ""$newname"", which already exists - please delete or rename the superfluous file and try again"
+        Write-ColorOutput -ForegroundColor Yellow -Message "Attempting to rename ""$oldname"" to ""$newname"", which already exists - please delete or rename the superfluous file and try again"
       } Else {
         Rename-Item (($plugin.FullName | Split-Path) + "\" + $oldname) $newname
       }

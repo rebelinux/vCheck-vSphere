@@ -10,19 +10,19 @@ $global:pluginURL = "https://raw.github.com/alanrenouf/vCheck-{0}/master/Plugins
    Get-vCheckPlugin parses your vCheck plugins folder, as well as searches the online plugin respository in Virtu-Al.net.
    After finding the plugin you are looking for, you can download and install it with Add-vCheckPlugin. Get-vCheckPlugins
    also supports finding a plugin by name. Future version will support categories (e.g. Datastore, Security, vCloud)
-     
+
 .PARAMETER name
    Name of the plugin.
 
 .PARAMETER proxy
    URL for proxy usage.
-   
+
 .PARAMETER proxy_user
    username for proxy auth.
-   
+
 .PARAMETER proxy_password
    password for proxy auth.
-   
+
 .PARAMETER proxy_domain
    domain for proxy auth.
 
@@ -41,7 +41,7 @@ $global:pluginURL = "https://raw.github.com/alanrenouf/vCheck-{0}/master/Plugins
 .EXAMPLE
    Get plugin by name using proxy with auth (domain optional depending on your proxy auth)
    Get-vCheckPlugin PluginName -proxy "http://127.0.0.1:3128" -proxy_user "username" -proxy_pass "password -proxy_domain "domain"
-   
+
 .EXAMPLE
    Get plugin information
    Get-vCheckPlugins PluginName
@@ -64,11 +64,11 @@ function Get-vCheckPlugin
     Process
     {
         $pluginObjectList = @()
-		
+
         foreach ($localPluginFile in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1, *.ps1.disabled -Recurse))
         {
             $localPluginContent = Get-Content $localPluginFile
-            
+
             if ($localPluginContent | Select-String -SimpleMatch "title")
             {
                 $localPluginName = ($localPluginContent | Select-String -SimpleMatch "Title").toString().split("`"")[1]
@@ -93,7 +93,7 @@ function Get-vCheckPlugin
             {
                 $localPluginCategory = @($localPluginContent | Select-String -SimpleMatch "PluginCategory")[0].toString().split("`"")[1]
             }
-          
+
             $pluginObject = New-Object PSObject
             $pluginObject | Add-Member -MemberType NoteProperty -Name name -value $localPluginName
             $pluginObject | Add-Member -MemberType NoteProperty -Name description -value $localPluginDesc
@@ -135,9 +135,9 @@ function Get-vCheckPlugin
 
                 foreach ($plugin in $plugins.pluginlist.plugin)
                 {
-                    $pluginObjectList | Where-Object {$_.name -eq $plugin.name -and [double]$_.version -lt [double]$plugin.version}|	
+                    $pluginObjectList | Where-Object {$_.name -eq $plugin.name -and [double]$_.version -lt [double]$plugin.version}|
 					Foreach-Object {
-						$_.status = "New Version Available - " + $plugin.version						
+						$_.status = "New Version Available - " + $plugin.version
 					}
 					if (!($pluginObjectList | Where-Object {$_.name -eq $plugin.name}))
                     {
@@ -186,10 +186,10 @@ function Get-vCheckPlugin
    Installs a vCheck plugin from the Virtu-Al.net repository.
 
 .DESCRIPTION
-   Add-vCheckPlugin downloads and installs a vCheck Plugin (currently by name) from the Virtu-Al.net repository. 
+   Add-vCheckPlugin downloads and installs a vCheck Plugin (currently by name) from the Virtu-Al.net repository.
 
    The downloaded file is saved in your vCheck plugins folder, which automatically adds it to your vCheck report. vCheck plugins may require
-   configuration prior to use, so be sure to open the ps1 file of the plugin prior to running your next report. 
+   configuration prior to use, so be sure to open the ps1 file of the plugin prior to running your next report.
 
 .PARAMETER name
    Name of the plugin.
@@ -223,11 +223,11 @@ function Add-vCheckPlugin
             $filename = [System.Web.HttpUtility]::UrlDecode($filename)
             try
             {
-                Write-Warning "Downloading File..."
+                Write-ColorOutput -Message "Downloading File..." -ForegroundColor Yellow
                 $webClient = new-object system.net.webclient
                 $webClient.DownloadFile($pluginObject.location,"$vCheckPath\Plugins\$filename")
-                Write-Warning "The plugin `"$($pluginObject.name)`" has been installed to $vCheckPath\Plugins\$filename"
-                Write-Warning "Be sure to check the plugin for additional configuration options."
+                Write-ColorOutput -Message "The plugin `"$($pluginObject.name)`" has been installed to $vCheckPath\Plugins\$filename" -ForegroundColor Yellow
+                Write-ColorOutput -Message "Be sure to check the plugin for additional configuration options." -ForegroundColor Yellow
 
             }
             catch [System.Net.WebException]
@@ -285,7 +285,7 @@ function Remove-vCheckPlugin
    Geberates plugins XML file from local plugins
 
 .DESCRIPTION
-   Designed to be run after plugin changes are commited, in order to generate 
+   Designed to be run after plugin changes are commited, in order to generate
    the plugin.xml file that the plugin update check uses.
 
 .PARAMETER outputFile
@@ -293,7 +293,7 @@ function Remove-vCheckPlugin
 #>
 function Get-vCheckPluginXML
 {
-   param 
+   param
    (
       $outputFile = "$($env:temp)\plugins.xml"
    )
@@ -305,7 +305,7 @@ function Get-vCheckPluginXML
 	   foreach ($localPluginFile in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1 -Recurse))
 	   {
 		  $localPluginContent = Get-Content $localPluginFile
-		  
+
 		  if ($localPluginContent | Select-String -SimpleMatch "title")
 		  {
 			  $localPluginName = ($localPluginContent | Select-String -SimpleMatch "Title").toString().split("`"")[1]
@@ -335,30 +335,30 @@ function Get-vCheckPluginXML
 		  $elem=$xml.CreateElement("name")
 		  $elem.InnerText=$localPluginName
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  $elem=$xml.CreateElement("description")
 		  $elem.InnerText=$localPluginDesc
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  $elem=$xml.CreateElement("author")
 		  $elem.InnerText=$localPluginAuthor
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  $elem=$xml.CreateElement("version")
 		  $elem.InnerText=$localPluginVersion
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  $elem=$xml.CreateElement("category")
 		  $elem.InnerText=$localPluginCategory
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  $elem=$xml.CreateElement("href")
 		  $elem.InnerText= ($pluginURL -f $localPluginCategory, $localPluginFile.Directory.Name, $localPluginFile.Name)
 		  [void]$pluginXML.AppendChild($elem)
-		  
+
 		  [void]$root.AppendChild($pluginXML)
 	   }
-   
+
    $xml.save($outputFile)
 }
 
@@ -369,7 +369,7 @@ function Get-vCheckPluginXML
 .DESCRIPTION
    Get-PluginSettings will return an array of settings contained
    within a supplied plugin. Used by Export-vCheckSettings.
-     
+
 .PARAMETER filename
    Full path to plugin file
  #>
@@ -382,14 +382,14 @@ Function Get-PluginSettings {
 	$file = Get-Content $filename
 	$OriginalLine = ($file | Select-String -SimpleMatch "# Start of Settings").LineNumber
 	$EndLine = ($file | Select-String -SimpleMatch "# End of Settings").LineNumber
-	if (!(($OriginalLine +1) -eq $EndLine)) {		
-		$Line = $OriginalLine		
+	if (!(($OriginalLine +1) -eq $EndLine)) {
+		$Line = $OriginalLine
 		do {
 			$Question = $file[$Line]
 			$Line++
 			$Split = ($file[$Line]).Split("=")
 			$Var = $Split[0]
-			$CurSet = $Split[1]			
+			$CurSet = $Split[1]
 			$settings = @{}
 			$settings.filename = $filename
 			$settings.question = $Question
@@ -397,7 +397,7 @@ Function Get-PluginSettings {
 			$settings.var = $CurSet.Trim()
 			$currentsetting = New-Object -TypeName PSObject -Prop $settings
 			$psettings += $currentsetting
-			$Line++ 
+			$Line++
 		} Until ( $Line -ge ($EndLine -1) )
 	}
 	$psettings
@@ -410,7 +410,7 @@ Function Get-PluginSettings {
 .DESCRIPTION
    Set-PluginSettings will apply settings supplied to a given vCheck plugin.
    Used by Export-vCheckSettings.
-     
+
 .PARAMETER filename
    Full path to plugin file
 
@@ -420,7 +420,7 @@ Function Get-PluginSettings {
 .PARAMETER GB
    Switch to disable Setup Wizard when processing GlobalVariables.ps1
  #>
-Function Set-PluginSettings {	
+Function Set-PluginSettings {
 	Param
     (
         [Parameter(mandatory=$true)] [String]$filename,
@@ -431,7 +431,7 @@ Function Set-PluginSettings {
 	$OriginalLine = ($file | Select-String -SimpleMatch "# Start of Settings").LineNumber
 	$EndLine = ($file | Select-String -SimpleMatch "# End of Settings").LineNumber
 	$PluginName = ($filename.split("\")[-1]).split(".")[0]
-	Write-Warning "`nProcessing - $PluginName"
+	Write-ColorOutput -Message "`nProcessing - $PluginName" -ForegroundColor Yellow
 	if (!(($OriginalLine +1) -eq $EndLine)) {
 		$Array = @()
 		$Line = $OriginalLine
@@ -443,7 +443,7 @@ Function Set-PluginSettings {
 			$Var = $Split[0].Trim()
 			$CurSet = $Split[1].Trim()
 			Foreach ($setting in $settings) {
-				If ($question -eq $setting.question.Trim()) {	
+				If ($question -eq $setting.question.Trim()) {
 					$NewSet = $setting.var
 					$Found = $true
 				}
@@ -464,16 +464,16 @@ Function Set-PluginSettings {
 				}
 			}
             if ($NewSet -ne $CurSet) {
-                Write-Warning "Plugin setting changed:"
-                Write-Warning "    Plugin:    $PluginName"
-                Write-Warning "    Question:  $Question"
-                Write-Warning "    Variable:  $Var"
-                Write-Warning "    Old Value: $CurSet"
-                Write-Warning "    New Value: $NewSet"
+                Write-ColorOutput -Message "Plugin setting changed:" -ForegroundColor Yellow
+                Write-ColorOutput -Message "    Plugin:    $PluginName" -ForegroundColor Yellow
+                Write-ColorOutput -Message "    Question:  $Question" -ForegroundColor Yellow
+                Write-ColorOutput -Message "    Variable:  $Var" -ForegroundColor Yellow
+                Write-ColorOutput -Message "    Old Value: $CurSet" -ForegroundColor Yellow
+                Write-ColorOutput -Message "    New Value: $NewSet" -ForegroundColor Yellow
             }
 			$Array += $Question
 			$Array += "$Var = $NewSet"
-			$Line ++ 
+			$Line ++
 		} Until ( $Line -ge ($EndLine -1) )
 		$Array += "# End of Settings"
 
@@ -499,7 +499,7 @@ Function Set-PluginSettings {
    By default, the CSV file will be created in the vCheck folder named vCheckSettings.csv.
    You can also specify a custom path using -outfile.
    Once the export has been created the settings can then be imported via Import-vCheckSettings.
-     
+
 .PARAMETER outfile
    Full path to CSV file
 
@@ -516,11 +516,11 @@ Function Export-vCheckSettings {
     (
         [Parameter(mandatory=$false)] [String]$outfile = "$vCheckPath\vCheckSettings.csv"
     )
-	
+
 	$Export = @()
 	$GlobalVariables = "$vCheckPath\GlobalVariables.ps1"
 	$Export = Get-PluginSettings -Filename $GlobalVariables
-	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1, *.ps1.disabled -Recurse)) { 
+	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1, *.ps1.disabled -Recurse)) {
 		$Export += Get-PluginSettings -Filename $plugin.Fullname
 	}
 	$Export | Select-Object filename, question, var | Export-Csv -NoTypeInformation $outfile
@@ -537,7 +537,7 @@ Function Export-vCheckSettings {
    By default, the XML file will be created in the vCheck folder named vCheckSettings.xml.
    You can also specify a custom path using -outfile.
    Once the export has been created the settings can then be imported via Import-vCheckSettingsXML.
-     
+
 .PARAMETER outfile
    Full path to XML file
 
@@ -554,11 +554,11 @@ Function Export-vCheckSettingsXML {
     (
         [Parameter(mandatory=$false)] [String]$outfile = "$vCheckPath\vCheckSettings.xml"
     )
-	
+
 	$Export = @()
 	$GlobalVariables = "$vCheckPath\GlobalVariables.ps1"
 	$Export = Get-PluginSettings -Filename $GlobalVariables
-	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1 -Recurse)) { 
+	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1 -Recurse)) {
 		$Export += Get-PluginSettings -Filename $plugin.Fullname
 	}
 
@@ -588,7 +588,7 @@ Function Export-vCheckSettingsXML {
    The Setup Wizard will be disabled.
    You will be asked any questions not found in the export. This would occur for new settings introduced
    enabling a quick update between versions.
-     
+
 .PARAMETER csvfile
    Full path to CSV file
 
@@ -605,7 +605,7 @@ Function Import-vCheckSettings {
     (
         [Parameter(mandatory=$false)] [String]$csvfile = "$vCheckPath\vCheckSettings.csv"
     )
-	
+
 	If (!(Test-Path $csvfile)) {
 		$csvfile = Read-Host "Enter full path to settings CSV file you want to import"
 	}
@@ -613,11 +613,11 @@ Function Import-vCheckSettings {
 	$GlobalVariables = "$vCheckPath\GlobalVariables.ps1"
 	$settings = $Import | Where-Object {($_.filename).Split("\")[-1] -eq ($GlobalVariables).Split("\")[-1]}
 	Set-PluginSettings -Filename $GlobalVariables -Settings $settings -GB
-	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1, *.ps1.disabled -Recurse)) { 
+	Foreach ($plugin in (Get-ChildItem -Path $vCheckPath\Plugins\* -Include *.ps1, *.ps1.disabled -Recurse)) {
 		$settings = $Import | Where-Object {($_.filename).Split("\")[-1] -eq ($plugin.Fullname).Split("\")[-1]}
 		Set-PluginSettings -Filename $plugin.Fullname -Settings $settings
 	}
-	Write-Warning "`nImport Complete!`n"
+	Write-ColorOutput -Message "`nImport Complete!`n" -ForegroundColor Yellow
 }
 
  <#
@@ -633,7 +633,7 @@ Function Import-vCheckSettings {
    The Setup Wizard will be disabled.
    You will be asked any questions not found in the export. This would occur for new settings introduced
    enabling a quick update between versions.
-     
+
 .PARAMETER csvfile
    Full path to XML file
 
@@ -650,7 +650,7 @@ Function Import-vCheckSettingsXML {
     (
         [Parameter(mandatory=$false)] [String]$xmlFile = "$vCheckPath\vCheckSettings.xml"
     )
-	
+
 	If (!(Test-Path $xmlFile)) {
 		$xmlFile = Read-Host "Enter full path to settings XML file you want to import"
 	}
@@ -658,11 +658,11 @@ Function Import-vCheckSettingsXML {
 	$GlobalVariables = "$vCheckPath\GlobalVariables.ps1"
 	$settings = $Import.vCheck.Setting | Where-Object {($_.filename).Split("\")[-1] -eq ($GlobalVariables).Split("\")[-1]}
 	Set-PluginSettings -Filename $GlobalVariables -Settings $settings -GB
-	Foreach ($plugin in (Get-ChildItem -Path "$vCheckPath\Plugins\" -Filter "*.ps1" -Recurse)) { 
+	Foreach ($plugin in (Get-ChildItem -Path "$vCheckPath\Plugins\" -Filter "*.ps1" -Recurse)) {
 		$settings = $Import.vCheck.Setting | Where-Object {($_.filename).Split("\")[-1] -eq ($plugin.Fullname).Split("\")[-1]}
 		Set-PluginSettings -Filename $plugin.Fullname -Settings $settings
 	}
-	Write-Warning "`nImport Complete!`n"
+	Write-ColorOutput -Message "`nImport Complete!`n" -ForegroundColor Yellow
 }
 
 Function Get-vCheckCommand {
@@ -696,7 +696,7 @@ function Schedule-vCheck {
 		then using a loop is recommended.
 
     .PARAMETER  PluginFile
-        The file to be processed.  Can be passed as text, a file object, or a set of files, such as 
+        The file to be processed.  Can be passed as text, a file object, or a set of files, such as
 		"Get-ChildItem *.ps1".
 
     .EXAMPLE
@@ -714,7 +714,7 @@ function Schedule-vCheck {
 		Variable	Selected.System.Management.Automation.PSCustomObject	The text of the variable assignment from the plugin file.
 
     .NOTES
-        With multiple vCheck directories to upgrade I needed an easy to pull the variables used 
+        With multiple vCheck directories to upgrade I needed an easy to pull the variables used
 		in the old vCheck installation to go into the new version.
 
     .LINK
@@ -734,22 +734,22 @@ param (
 
 #begin {
 	Write-Verbose "Started $PluginFile"
-	
+
 	if (Test-Path $PluginFile) {
 		$PluginFile = Get-ChildItem $PluginFile
 		$contents = Get-Content $PluginFile
 		$end = $contents.length }
 	else { throw "Value passed to File parameter is not a file."  }
-	
+
 	$i=0
-	
+
 #} # end begin block
 
 #process {
 
 	while ( ($i -lt $end) -and ($contents[$i] -notmatch "Start of Settings") ) { $i++ }
-	
-	while ( ($i -lt $end) -and ($contents[$i] -notmatch "End of Settings")   ) { 
+
+	while ( ($i -lt $end) -and ($contents[$i] -notmatch "End of Settings")   ) {
 		if ($contents[$i] -match "`=") { "" | Select-Object @{n='File';e={$PluginFile.fullname}},@{n='Variable';e={$contents[$i]}}; $i++ }
 		else { $i++ }
 	}
@@ -806,7 +806,7 @@ param (
 $OldVcheckPluginsDir = (Get-ChildItem "$($OldVcheckDir)\Plugins").PsParentPath
 $NewVcheckPluginsDir = (Get-ChildItem "$($NewVcheckDir)\Plugins").PsParentPath
 
-$OldDisabled = Get-ChildItem $OldVcheckDir -Recurse | ? { $_ -like "*.disabled" } #| select -First 1
+$OldDisabled = Get-ChildItem $OldVcheckDir -Recurse | Where-Object { $_ -like "*.disabled" } #| select -First 1
 $OldDisabled
 
 foreach ($file in $OldDisabled) {
@@ -848,7 +848,7 @@ function Get-vCheckDisabledPlugins {
 
 param ( [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)] $vCheckDir )
 
-Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | ? { $_ -like "*.disabled" } #| select -First 1
+Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | Where-Object { $_ -like "*.disabled" } #| select -First 1
 
 <# Comment History
 20150128	cmonahan	Initial release.
@@ -867,8 +867,8 @@ Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | ? 
 		  -Save all the variable settings to a text file
 		  -Set the same disabled plugins in the new version
 		  -Opens the saved variable settings in Notepad
-		  
-		Then run vCheck.ps1 for the first time to configure it using the 
+
+		Then run vCheck.ps1 for the first time to configure it using the
 		variables listing open in Notepad as a reference.
 
     .PARAMETER  CurrentvCheckPath
@@ -876,7 +876,7 @@ Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | ? 
 
     .PARAMETER  NewvCheckSource
 		Location of the new version downloaded from GitHub.
-	
+
     .EXAMPLE
         Upgrade-vCheckDirectory -CurrentvCheckPath c:\scripts\vcheck6\vcenter -NewvCheckSource c:\scripts\vcheck6\vcenter\vCheck-vSphere-master
 
@@ -884,7 +884,7 @@ Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | ? 
         If you have multiple directories and some settings like smtp server
 	are the same for them all you could upgrade the file(s) in the new
 	vCheck version directory and they'll be copied out with each upgrade.
-	
+
 	This is my process for upgrading vCheck with this function.
 	  1.  Extract a new, unmodified version of the vCheck to a directory.  For this example "C:\Scripts\vCheck\vCheck-vSphere-master".
 	  2.  Load the utility - ". C:\Scripts\vCheck\vCheck-vSphere-master\vCheckUtils.ps1" .
@@ -893,7 +893,7 @@ Get-ChildItem (Get-ChildItem "$($vCheckDir)\Plugins").PsParentPath -Recurse | ? 
 	  5.  Change directory to C:\Scripts\vcheck\vcenterprod .
 	  6.  Run vCheck.ps1 .  Input all the prompts for variable values with the ones in the file opened by Notepad.  For the global variable â $EmailFrom = "vcheck-vcenter@monster.com" â I use my own email address until after I done a test run.  Then I change it back to the group email address.
 	  7.  After all the variable have been entered vCheck will run.
-	  8.  Review the PowerShell console for script errors and the vCheck email report for any problems.  
+	  8.  Review the PowerShell console for script errors and the vCheck email report for any problems.
 	  9.  If there are not problems set the âEmailFromâ variable in âGlobalVariables.ps1â back to itâs original value.
 
     .LINK
@@ -923,10 +923,10 @@ $OldvCheckVariables = "$($OldvCheckPath)\vCheckVariables_$($TS).txt"
 # Backup current directory and setup new directory
 Move-Item -Path $CurrentvCheckPath -Destination $OldvCheckPath
 mkdir $CurrentvCheckPath
-robocopy $NewvCheckSource $CurrentvCheckPath /s /e /z /xj /r:2 /w:5 /np 
+robocopy $NewvCheckSource $CurrentvCheckPath /s /e /z /xj /r:2 /w:5 /np
 
 # Save variable settings
-Get-ChildItem -Path $OldvCheckPath -Filter *.ps1 -Recurse | % { Get-vCheckVariablesSettings -PluginFile $_.FullName } | Format-Table -AutoSize | Out-File -FilePath $OldvCheckVariables
+Get-ChildItem -Path $OldvCheckPath -Filter *.ps1 -Recurse | ForEach-Object { Get-vCheckVariablesSettings -PluginFile $_.FullName } | Format-Table -AutoSize | Out-File -FilePath $OldvCheckVariables
 
 # Make the disabled plugins match
 Sync-vCheckDisabledPlugins -OldVcheckDir $OldvCheckPath -NewVcheckDir $CurrentvCheckPath
@@ -972,7 +972,7 @@ Function Get-vCheckLogData {
 	}
 
 	# There is a sub table with the data - so get the TR that contains a sub table
-	$ParentTR = $xmlObj.table.tr | ? { $_.td.table }
+	$ParentTR = $xmlObj.table.tr | Where-Object { $_.td.table }
 	# Get the TD
 	$ParentTD = $ParentTR.td
 	# Get the table
@@ -991,7 +991,7 @@ Function Get-vCheckLogData {
 	for ($i=1; $i -lt $subTable.tr.count; $i++) {
 		# Get the TDs under the TR, and loop through those
 		$td = $subTable.tr[$i].td
-		
+
 		# build a hash table pulling the column name from the TH hash table, and the value from the TD
 		$tdHash = @{}
 		for ($j=0; $j -lt $td.count;$j++) {

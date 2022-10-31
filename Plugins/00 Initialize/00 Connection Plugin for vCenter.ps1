@@ -18,7 +18,7 @@ $Server = Get-vCheckSetting $Title "Server" $Server
 
 # Setup plugin-specific language table
 $pLang = DATA {
-   ConvertFrom-StringData @' 
+   ConvertFrom-StringData @'
       connReuse = Re-using connection to VI Server
       connOpen  = Connecting to VI Server
       connError = Unable to connect to vCenter, please ensure you have altered the vCenter server address correctly. To specify a username and password edit the connection string in the file $GlobalVariables
@@ -93,7 +93,7 @@ function Get-CorePlatform {
         # Other
         else
         {
-            Write-Warning -Message "Kernel $($uname) not covered"
+            Write-ColorOutput -Message "Kernel $($uname) not covered" -ForegroundColor Yellow
         }
     }
     [ordered]@{
@@ -108,17 +108,17 @@ function Get-CorePlatform {
 
 $Platform = Get-CorePlatform
 switch ($platform.OSFamily) {
-    "Darwin" { 
+    "Darwin" {
         $templocation = "/tmp"
         $Outputpath = $templocation
         Get-Module -ListAvailable PowerCLI* | Import-Module
     }
-    "Linux" { 
+    "Linux" {
         $templocation = "/tmp"
         $Outputpath = $templocation
         Get-Module -ListAvailable PowerCLI* | Import-Module
     }
-    "Windows" { 
+    "Windows" {
         $templocation = "$ENV:Temp"
         $pcliCore = 'VMware.VimAutomation.Core'
 
@@ -329,7 +329,7 @@ if ($VMFolder) {
     $FullVM = $FullVM | Where-Object { $_.Name -in $VM.Name }
 }
 
-Write-CustomOut $pLang.collectTemplate 
+Write-CustomOut $pLang.collectTemplate
 $VMTmpl = Get-Template
 Write-CustomOut $pLang.collectDVIO
 $ServiceInstance = get-view ServiceInstance
@@ -360,37 +360,37 @@ if ($VIVersion -ge 5) {
    $DatastoreClustersView = Get-View -viewtype StoragePod
 }
 
-<#   
-.SYNOPSIS  Returns vSphere events    
+<#
+.SYNOPSIS  Returns vSphere events
 .DESCRIPTION The function will return vSphere events. With
    the available parameters, the execution time can be
-   improved, compered to the original Get-VIEvent cmdlet. 
-.NOTES  Author:  Luc Dekens   
+   improved, compered to the original Get-VIEvent cmdlet.
+.NOTES  Author:  Luc Dekens
 .PARAMETER Entity
    When specified the function returns events for the
    specific vSphere entity. By default events for all
-   vSphere entities are returned. 
+   vSphere entities are returned.
 .PARAMETER EventType
    This parameter limits the returned events to those
-   specified on this parameter. 
+   specified on this parameter.
 .PARAMETER Start
-   The start date of the events to retrieve 
+   The start date of the events to retrieve
 .PARAMETER Finish
-   The end date of the events to retrieve. 
+   The end date of the events to retrieve.
 .PARAMETER Recurse
    A switch indicating if the events for the children of
-   the Entity will also be returned 
+   the Entity will also be returned
 .PARAMETER User
-   The list of usernames for which events will be returned 
+   The list of usernames for which events will be returned
 .PARAMETER System
-   A switch that allows the selection of all system events. 
+   A switch that allows the selection of all system events.
 .PARAMETER ScheduledTask
    The name of a scheduled task for which the events
-   will be returned 
+   will be returned
 .PARAMETER FullMessage
    A switch indicating if the full message shall be compiled.
    This switch can improve the execution speed if the full
-   message is not needed.   
+   message is not needed.
 .PARAMETER UseUTC
    A switch indicating if the event shoukld remain in UTC or
    local time.
@@ -400,7 +400,7 @@ if ($VIVersion -ge 5) {
    PS> Get-VIEventPlus -Entity $cluster -Recurse:$true
 #>
 function Get-VIEventPlus {
-    
+
    param(
       [VMware.VimAutomation.ViCore.Types.V1.Inventory.InventoryItem[]]$Entity,
       [string[]]$EventType,
@@ -464,9 +464,9 @@ function Get-VIEventPlus {
       }
       if (-not $UseUTC)
       {
-         $events | % { $_.createdTime = $_.createdTime.ToLocalTime() }
+         $events | ForEach-Object { $_.createdTime = $_.createdTime.ToLocalTime() }
       }
-      
+
       $events
    }
 }
@@ -506,7 +506,7 @@ PS> Get-FriendlyUnit -Value 123456,789123, 45678
     }
 
     process{
-        $Value | %{
+        $Value | ForEach-Object {
             if($_ -lt 0){
                 write-Error "Numbers must be positive."
                 break
@@ -602,13 +602,13 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
             }
             Default {
                 Throw "Invalid parameter combination"
-            }                                                                                                                                                                        
+            }
         }
         $folderQualifier = $folderQualifier -join '/'
         if($Path -match "/$" -and $folderQualifier -notmatch "/$"){
             $folderQualifier += '/'
         }
-        $stack = Get-PSCallStack | Select -ExpandProperty Command
+        $stack = Get-PSCallStack | Select-Object -ExpandProperty Command
         if(($stack | Group-Object -AsHashTable -AsString)[$stack[0]].Count -eq 1){
             Write-Verbose "First call"
             $sDFile = @{
@@ -620,7 +620,7 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
                 Unit = $Unit.IsPresent
             }
             $allEntry = Get-HttpDatastoreItem @sDFile
-            $entry = $allEntry | where{$_.Name -match "^$($lastQualifier)/*$"}
+            $entry = $allEntry | Where-Object {$_.Name -match "^$($lastQualifier)/*$"}
             if($entry.Name -match "\/$"){
             # It's a folder
                 if($lastQualifier -notmatch "/$"){
@@ -642,7 +642,7 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
             $uri = "https://$($Server.Name)/folder$(if($folderQualifier){'/' + $folderQualifier})?dcPath=$($dc.Name)&dsName=$($ds.Name)"
             Write-Verbose "Looking at URI: $($uri)"
             Try{
-                $response = Invoke-WebRequest -Uri $Uri -Method Get -Credential $Credential 
+                $response = Invoke-WebRequest -Uri $Uri -Method Get -Credential $Credential
             }
             Catch{
                 $errorMsg = "`n$(Get-Date -Format 'yyyyMMdd HH:mm:ss') HTTP $($_.Exception.Response.ProtocolVersion)" +
@@ -653,8 +653,8 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
                 break
             }
             foreach($entry in $response){
-                $regEx.Matches($entry.Content) | 
-                Where{$_.Success -and $_.Groups['Filename'].Value -notmatch 'Parent Datacenter|Parent Directory'} | %{
+                $regEx.Matches($entry.Content) |
+                Where-Object {$_.Success -and $_.Groups['Filename'].Value -notmatch 'Parent Datacenter|Parent Directory'} | ForEach-Object {
                     Write-Verbose "`tFound $($_.Groups['Filename'].Value)"
                     $fName = $_.Groups['Filename'].Value
                     $obj = [ordered]@{

@@ -1,34 +1,34 @@
-<# 
-.SYNOPSIS 
+<#
+.SYNOPSIS
    vCheck is a PowerShell HTML framework script, designed to run as a scheduled
    task before you get into the office to present you with key information via
    an email directly to your inbox in a nice easily readable format.
 .DESCRIPTION
    vCheck Daily Report for vSphere
 
-   vCheck is a PowerShell HTML framework script, the script is designed to run 
-   as a scheduled task before you get into the office to present you with key 
+   vCheck is a PowerShell HTML framework script, the script is designed to run
+   as a scheduled task before you get into the office to present you with key
    information via an email directly to your inbox in a nice easily readable format.
 
-   This script picks on the key known issues and potential issues scripted as 
-   plugins for various technologies written as powershell scripts and reports 
+   This script picks on the key known issues and potential issues scripted as
+   plugins for various technologies written as powershell scripts and reports
    it all in one place so all you do in the morning is check your email.
 
-   One of they key things about this report is if there is no issue in a particular 
-   place you will not receive that section in the email, for example if there are 
-   no datastores with less than 5% free space (configurable) then the disk space 
-   section in the virtual infrastructure version of this script, it will not show 
-   in the email, this ensures that you have only the information you need in front 
+   One of they key things about this report is if there is no issue in a particular
+   place you will not receive that section in the email, for example if there are
+   no datastores with less than 5% free space (configurable) then the disk space
+   section in the virtual infrastructure version of this script, it will not show
+   in the email, this ensures that you have only the information you need in front
    of you when you get into the office.
 
-   This script is not to be confused with an Audit script, although the reporting 
-   framework can also be used for auditing scripts too. I dont want to remind you 
-   that you have 5 hosts and what there names are and how many CPUs they have each 
-   and every day as you dont want to read that kind of information unless you need 
+   This script is not to be confused with an Audit script, although the reporting
+   framework can also be used for auditing scripts too. I dont want to remind you
+   that you have 5 hosts and what there names are and how many CPUs they have each
+   and every day as you dont want to read that kind of information unless you need
    it, this script will only tell you about problem areas with your infrastructure.
 
-.NOTES 
-   File Name  : vCheck.ps1 
+.NOTES
+   File Name  : vCheck.ps1
    Author     : Alan Renouf - @alanrenouf
    Version    : 6.25
 
@@ -99,20 +99,20 @@ Import-LocalizedData -BaseDirectory ($ScriptPath + "\Lang") -BindingVariable lan
 <# Write timestamped output to screen #>
 function Write-CustomOut ($Details) {
 	$LogDate = Get-Date -Format "HH:mm:ss"
-	Write-OutPut "[$($LogDate)] $Details"
+	Write-ColorOutput -Message "[$($LogDate)] $Details" -ForegroundColor Gray
 }
 
 <# Placeholder for now, just return the setting passed to it. Eventually this
    will be used for new settings handling #>
 function Get-vCheckSetting
 {
-   param 
+   param
    (
       [string]$Module,
       [string]$Setting,
       $default
    )
-   
+
    return $default
 }
 
@@ -133,13 +133,54 @@ Function Get-PluginID ($Filename) {
 	$PluginVersion = Get-ID-String $file "PluginVersion"
 	$Author = Get-ID-String $file "Author"
 	$Ver = "{0:N1}" -f $PluginVersion
-	
+
 	return @{ "Title" = $Title; "Version" = $Ver; "Author" = $Author }
 }
 
+Function Write-ColorOutput {
+    <#
+.DESCRIPTION
+    Allow to set colored output.
+.NOTES
+    Updated: 20221030
+    Updated By: Jonathan Colon
+    Update Notes:
+    - Initial creation
+#>
+
+[CmdletBinding()]
+param (
+    [Alias('Message')]
+    [String] $String,
+    [System.ConsoleColor] $ForegroundColor = $host.UI.RawUI.ForegroundColor,
+    [System.ConsoleColor] $BackgroundColor = $host.UI.RawUI.BackgroundColor
+)
+
+process {
+    # save the current color
+    $FColor = $host.UI.RawUI.ForegroundColor
+    $BColor = $host.UI.RawUI.BackgroundColor
+
+    # set the new color
+    $host.UI.RawUI.ForegroundColor = $ForegroundColor
+    $host.UI.RawUI.BackgroundColor = $BackgroundColor
+
+    # output
+    if ($args) {
+        Write-Output $String
+    }
+    else {
+        $String | Write-Output
+    }
+
+    # restore the original color
+    $host.UI.RawUI.ForegroundColor = $FColor
+    $host.UI.RawUI.BackgroundColor = $BColor
+}
+} # end Function Write-ColorOutput
 
 Function Invoke-Settings {
-	
+
 	<#
 	.DESCRIPTION
 		Run through settings for specified file, expects question on one line, and variable/value on following line
@@ -154,7 +195,7 @@ Function Invoke-Settings {
 		- improved code spacing for improved readability
 		- added comment based help section for notes/comments
 	#>
-	
+
 	[CmdletBinding(PositionalBinding = $true)]
 	param (
 		[parameter(Position = 0)]
@@ -162,84 +203,84 @@ Function Invoke-Settings {
 		[parameter(Position = 1)]
 		$GB
 	)
-	
+
 	PROCESS {
-		
+
 		$file = Get-Content $filename
 		$OriginalLine = ($file | Select-String -Pattern "# Start of Settings").LineNumber
 		$EndLine = ($file | Select-String -Pattern "# End of Settings").LineNumber
-		
+
 		if (!(($OriginalLine + 1) -eq $EndLine)) {
-			
+
 			$Array = @()
 			$Line = $OriginalLine
 			$PluginName = (Get-PluginID $Filename).Title
-			
+
 			If ($PluginName.EndsWith(".ps1", 1)) {
-				
+
 				$PluginName = ($PluginName.split("\")[-1]).split(".")[0]
-				
+
 			} # end if
-			
-			Write-Warning -Message "`n$PluginName"
-			
+
+			Write-ColorOutput -ForegroundColor Yellow -Message "`n$PluginName"
+
 			do {
-				
+
 				$Question = $file[$Line]
 				$Line++
 				$Split = ($file[$Line]).Split("=")
 				$Var = $Split[0]
 				$CurSet = $Split[1].Trim()
-				
+
 				# Check if the current setting is quoted
 				$String = $false
-				if ($CurSet -match '"') {					
+				if ($CurSet -match '"') {
 					$String = $true
-					$CurSet = $CurSet.Replace('"', '').Trim()					
+					$CurSet = $CurSet.Replace('"', '').Trim()
 				} # end if
-				
+
 				$NewSet = Read-Host "$Question [$CurSet]"
-				
-				If (-not $NewSet) {					
-					$NewSet = $CurSet					
+
+				If (-not $NewSet) {
+					$NewSet = $CurSet
 				} # end if
-				
-				If ($String) {					
+
+				If ($String) {
 					$Array += $Question
-					$Array += "$Var= `"$NewSet`""					
-				} Else {					
+					$Array += "$Var= `"$NewSet`""
+				} Else {
 					$Array += $Question
-					$Array += "$Var= $NewSet"					
+					$Array += "$Var= $NewSet"
 				} # end if/else
-				
+
 				$Line++
-				
+
 			} Until ($Line -ge ($EndLine - 1))
-			
+
 			$Array += "# End of Settings"
-			
+
 			$out = @()
 			$out = $File[0..($OriginalLine - 1)]
 			$out += $array
 			$out += $File[$Endline..($file.count - 1)]
-			
-			if ($GB) {				
-				$out[$SetupLine] = '$SetupWizard = $False'				
+
+			if ($GB) {
+				$out[$SetupLine] = '$SetupWizard = $False'
 			}  # end if
-			
+
 			$out | Set-Content $Filename
-			
+
 		} # end if
-		
+
 	} # end PROCESS block
-	
+
 } # end Function Invoke-Settings
 
 Function Invoke-HTMLSettings {
-	
+
 	<#
 	.DESCRIPTION
-		Run through settings for specified file, expects question on one line, and variable/value on following line.  
+		Run through settings for specified file, expects question on one line, and variable/value on following line.
 		Outputs settings to HTML file, which accepts input, and can create a configuration file.
 	.NOTES
 		Updated: 20160830
@@ -247,7 +288,7 @@ Function Invoke-HTMLSettings {
 		Update Notes:
 		- Initial creation
 	#>
-	
+
 	[CmdletBinding(PositionalBinding = $true)]
 	param (
 		[parameter(Position = 0)]
@@ -255,27 +296,27 @@ Function Invoke-HTMLSettings {
 		[parameter(Position = 1)]
 		$GB
 	)
-	
+
 	PROCESS {
-		
+
 		$file = Get-Content $filename
 		$OriginalLine = ($file | Select-String -Pattern "# Start of Settings").LineNumber
 		$EndLine = ($file | Select-String -Pattern "# End of Settings").LineNumber
-		
+
 		if (!(($OriginalLine + 1) -eq $EndLine)) {
 
 			$Line = $OriginalLine
 			$PluginInfo = Get-PluginID $Filename
 			$PluginName = $PluginInfo.Title
-			
+
 			$htmlOutput = ""
-			If ($PluginName.EndsWith(".ps1", 1)) {				
-				$PluginName = ($PluginName.split("\")[-1]).split(".")[0]				
+			If ($PluginName.EndsWith(".ps1", 1)) {
+				$PluginName = ($PluginName.split("\")[-1]).split(".")[0]
 			} # end if
 
 			$htmlOutput += "<table>"
-			
-			do {				
+
+			do {
 				$Question = $file[$Line]
 				$QuestionWithoutHash = $Question.Replace("# ", "")
 				$Line++
@@ -285,15 +326,15 @@ Function Invoke-HTMLSettings {
 					$CurSet = $Split[1].Trim()
 					# Check if the current setting is in speech marks
 					$String = $false
-					if ($CurSet -match '"') {					
+					if ($CurSet -match '"') {
 						$String = $true
-						$CurSet = $CurSet.Replace('"', '').Trim()					
+						$CurSet = $CurSet.Replace('"', '').Trim()
 					} # end if
 
 					$htmlOutput += "<tr><td>$QuestionWithoutHash</td><td><input name='$Filename|$Question|$Var' type='text' value='$CurSet' size=60 /></td></tr>`n"
 				}
 			} Until ($Line -ge ($EndLine - 1))
-			
+
 			$htmlOutput += "</table>"
 			$PluginConfig += New-Object PSObject -Property @{
 				"Details" = $htmlOutput;
@@ -303,20 +344,20 @@ Function Invoke-HTMLSettings {
 
 			return $PluginConfig
 		} # end if
-		
+
 	} # end PROCESS block
-	
+
 } # end Function Invoke-HTMLSettings
 
 <# Replace HTML Entities in string. Used to stop <br /> tags from being mangled in tables #>
 function Format-HTMLEntities {
 	param ([string]$content)
-	
+
 	$replace = @{
 		"&lt;" = "<";
 		"&gt;" = ">";
 	}
-	
+
 	foreach ($r in $replace.Keys.GetEnumerator()) {
 		$content = $content -replace $r, $replace[$r]
 	}
@@ -326,17 +367,17 @@ function Format-HTMLEntities {
 <# Takes an array of content, and optional formatRules and generated HTML table #>
 Function Get-HTMLTable {
 	param ($Content, $FormatRules)
-	
+
 	# Use an XML object for ease of use
 	$XMLTable = [xml]($content | ConvertTo-Html -Fragment)
 	$XMLTable.table.SetAttribute("width", "100%")
-	
+
 	# If only one column, fix up the table header
 	if (($content | Get-Member -MemberType Properties).count -eq 1)
 	{
 		$XMLTable.table.tr[0].th = (($content | Get-Member -MemberType Properties) | Select-Object -ExpandProperty Name -First 1).ToString()
 	}
-	
+
 	# If format rules are specified
 	if ($FormatRules) {
 		# Check each cell to see if there are any format rules
@@ -360,7 +401,7 @@ Function Get-HTMLTable {
 							# Find what to
 							$RuleScope = ([string]$rule.Values).split(",")[0]
 							$RuleActions = ([string]$rule.Values).split(",")[1].split("|")
-							
+
 							switch ($RuleScope) {
 								"Row"  {
 									for ($TRColN = 0; $TRColN -lt $XMLTable.table.tr[$RowN].td.count; $TRColN++) {
@@ -378,7 +419,7 @@ Function Get-HTMLTable {
 											$elem.SetAttribute("width", $Matches[1])
 											$elem.SetAttribute("height", $Matches[2])
 										}
-										
+
 										$XMLTable.table.tr[$RowN].selectSingleNode("td[$($ColN + 1)]").AppendChild($elem) | Out-Null
 										# Increment usage counter (so we don't have .bin attachments)
 										Set-ReportResource $RuleActions[1]
@@ -399,7 +440,7 @@ Function Get-HTMLTable {
 <# Takes an array of content, and returns HTML table with header column #>
 Function Get-HTMLList {
 	param ([array]$content)
-	
+
 	if ($content.count -gt 0) {
 		# Create XML doc from HTML. Remove colgroup and header row
 		if ($content.count -gt 1) {
@@ -410,7 +451,7 @@ Function Get-HTMLList {
 		} else {
 			[xml]$XMLTable = $content | ConvertTo-HTML -Fragment -As List
 		}
-		
+
 		# Replace the first column td with th
 		for ($i = 0; $i -lt $XMLTable.table.tr.count; $i++) {
 			$node = $XMLTable.table.tr[$i].SelectSingleNode("/table/tr[$($i + 1)]/td[1]")
@@ -419,13 +460,13 @@ Function Get-HTMLList {
 			$trNode = $XMLTable.SelectSingleNode("/table/tr[$($i + 1)]")
 			$trNode.ReplaceChild($elem, $node) | Out-Null
 		}
-		
+
 		# If only one column, fix up the table header
 		if (($content | Get-Member -MemberType Properties).count -eq 1)
 		{
 			$XMLTable.table.tr[0].th = (($content | Get-Member -MemberType Properties) | Select-Object -ExpandProperty Name -First 1).ToString()
 		}
-		
+
 		return (Format-HTMLEntities ([string]($XMLTable.OuterXml)))
 	}
 }
@@ -448,7 +489,7 @@ function Get-HTMLChart {
 	return $html
 }
 
-<# Create a new Chert object, this will get fed back down the output stream as part 
+<# Create a new Chert object, this will get fed back down the output stream as part
    of plugin processing. This allows us to keep the same interface for plugins content #>
 function New-Chart {
 	param (
@@ -466,7 +507,7 @@ function New-Chart {
 						 "StackedColumn100", "StepLine", "Stock", "ThreeLineBreak")]
 		$ChartType = "bar"
 	)
-	
+
 	# If chartsize is specified in style, use it unless explicitly set
 	if ($ChartSize -and (-not $height -and -not $width)) {
 		if ($ChartSize -match "(\d+)x(\d+)") {
@@ -479,7 +520,7 @@ function New-Chart {
 		$height = 400
 		$width = 400
 	}
-	
+
 	return New-Object PSObject -Property @{
 		"height" = $height;
 		"width" = $width;
@@ -497,17 +538,17 @@ function Get-ChartResource {
 		$ChartDef
 	)
 	[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
-	
+
 	# Create a new chart object
 	$Chart = New-object System.Windows.Forms.DataVisualization.Charting.Chart
 	$Chart.Width = $ChartDef.width
 	$Chart.Height = $ChartDef.height
 	$Chart.AntiAliasing = "All"
-	
+
 	# Create a chartarea to draw on and add to chart
 	$ChartArea = New-Object System.Windows.Forms.DataVisualization.Charting.ChartArea
 	$Chart.ChartAreas.Add($ChartArea)
-	
+
 	# Set title and axis labels
 	if ($ChartDef.title) {
 		$titleRef = $Chart.Titles.Add($ChartDef.title)
@@ -518,7 +559,7 @@ function Get-ChartResource {
 	if ($ChartDef.titleY) {
 		$ChartArea.AxisY.Title = $ChartDef.titleY
 	}
-	
+
 	# change chart colours
 	if ($ChartBackground) {
 		$Chart.BackColor = Get-ChartColours $ChartBackground
@@ -532,21 +573,21 @@ function Get-ChartResource {
 		$Chart.PaletteCustomColors = Get-ChartColours $ChartColours
 		$Chart.Palette = [System.Windows.Forms.DataVisualization.Charting.ChartColorPalette]::None
 	}
-	
+
 	if ($ChartFontColour) {
 		$Chart.ForeColor = Get-ChartColours $ChartFontColour
 	}
-	
+
 	# Add data to chart and set chart type
 	for ($i = 0; $i -lt $ChartDef.data.count; $i++) {
 		[void]$Chart.Series.Add("Data$i")
 		$Chart.Series["Data$i"].Points.DataBindXY($ChartDef.data[$i].Keys, $ChartDef.data[$i].Values)
 		$Chart.Series["Data$i"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::($ChartDef.ChartType)
 	}
-	
+
 	# Do some funky work to increase the DPI so charts look nice. Default 96 DPI looks terrible :(
 	[void][System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-	
+
 	$bmp = New-Object System.Drawing.Bitmap(($ChartDef.width), ($ChartDef.height))
 	$bmp.SetResolution(384, 384);
 	if ($ChartArea.BackColor -eq [System.Drawing.Color]::Transparent) {
@@ -558,7 +599,7 @@ function Get-ChartResource {
 	$ms.Seek(0, [System.IO.SeekOrigin]::Begin) | Out-Null
 	$byte = New-Object byte[] $ms.Length
 	$ms.read($byte, 0, $ms.length) | Out-Null
-	
+
 	return ("png|{0}" -f [System.Convert]::ToBase64String($byte))
 }
 
@@ -567,7 +608,7 @@ function Get-ChartColours {
 	param (
 		[string[]]$ChartColours
 	)
-	
+
 	foreach ($colour in $ChartColours) {
 		[System.Drawing.Color]::FromArgb([Convert]::ToInt32($colour.Substring(0, 2), 16),
 		[Convert]::ToInt32($colour.Substring(2, 2), 16),
@@ -587,7 +628,7 @@ function Add-ReportResource {
 		$Type = "File",
 		$Used = $false
 	)
-	
+
 	# If cid does not exist, add it
 	if ($global:ReportResources.Keys -notcontains $cid) {
 		$global:ReportResources.Add($cid, @{
@@ -595,7 +636,7 @@ function Add-ReportResource {
 			"Uses" = 0
 		})
 	}
-	
+
 	# Update uses count if $Used set (Should normally be incremented with Set-ReportResource)
 	# Useful for things like headers where they are always required.
 	if ($Used) {
@@ -607,12 +648,12 @@ Function Set-ReportResource {
 	param (
 		$cid
 	)
-	
+
 	# Increment use
 	($global:ReportResources[$cid].Uses)++
 }
 
-<# Gets a resource in the specified ReturnType (eventually support both a 
+<# Gets a resource in the specified ReturnType (eventually support both a
 base64 encoded string, and Linked Resource for email #>
 function Get-ReportResource {
 	param (
@@ -620,9 +661,9 @@ function Get-ReportResource {
 		[ValidateSet("embed", "linkedresource")]
 		$ReturnType = "embed"
 	)
-	
+
 	$data = $global:ReportResources[$cid].Data.Split("|")
-	
+
 	# Process each resource type differently
 	switch ($data[0]) {
 		"File"   {
@@ -645,7 +686,7 @@ function Get-ReportResource {
 					return $lr;
 				}
 			} else {
-				Write-Warning ($lang.resFileWarn -f $cid)
+				Write-ColorOutput -Message ($lang.resFileWarn -f $cid) -ForegroundColor Yellow
 			}
 		}
 		"SystemIcons" {
@@ -657,7 +698,7 @@ function Get-ReportResource {
 			$ms = new-Object IO.MemoryStream
 			$bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::PNG)
 			$ms.Seek(0, [System.IO.SeekOrigin]::Begin) | Out-Null
-			
+
 			if ($ReturnType -eq "embed") {
 				# return a MIME/Base64 combo for embedding in HTML
 				$byte = New-Object byte[] $ms.Length
@@ -692,7 +733,7 @@ function Get-ReportResource {
 function Get-ConfigScripts {
 	return "function createCSV() {
 			var inputs = document.getElementsByTagName('input');
-			
+
 			var strsplit = null
 			//var output = 'filename,question,var\n'
 			var output = '<vCheck>\n'
@@ -706,12 +747,12 @@ function Get-ConfigScripts {
 				output += strsplit[1]
 				output += '</question>\n'
 				output += '\t\t<varname>'
-				output += strsplit[2] 
+				output += strsplit[2]
 				output += '</varname>\n'
 				output += '\t\t<var>""'
 				output += inputs[i].value
 				output += '""</var>\n'
-				output += '\t</setting>\n'   
+				output += '\t</setting>\n'
 			}
 			output += '</vCheck>'
 			downloadFile('vCheckSettings.xml', output)
@@ -751,15 +792,15 @@ function Set-vCenterCredentials ($OutputFile)
 Enter the username and password for vCenter server '$Server'.
 These credentials will be stored securely at '$OutputFile'."
 "@
-    if ($NewCredential -eq $null) {
-        Write-Warning "No credentials were provided! Exiting."
+    if ($null -eq $NewCredential) {
+        Write-ColorOutput -ForegroundColor Red -Message "No credentials were provided! Exiting."
         Exit 1
     }
-    $export = "" | Select-Object Username, EncryptedPassword 
-    $export.Username = $NewCredential.Username 
-    $export.EncryptedPassword = $NewCredential.Password | ConvertFrom-SecureString 
+    $export = "" | Select-Object Username, EncryptedPassword
+    $export.Username = $NewCredential.Username
+    $export.EncryptedPassword = $NewCredential.Password | ConvertFrom-SecureString
     $export | Export-Clixml $OutputFile
-    Write-Host -foregroundcolor green "Credentials saved to: $OutputFile"
+    Write-ColorOutput -ForegroundColor green "Credentials saved to: $OutputFile"
     Return $NewCredential
 }
 
@@ -767,7 +808,7 @@ These credentials will be stored securely at '$OutputFile'."
 function Get-vCenterCredentials ($InputFile)
 {
     $credentials = Import-Clixml $InputFile
-    $import = "" | Select-Object Username, Password 
+    $import = "" | Select-Object Username, Password
     $import.Username = $credentials.Username
     $import.Password = $credentials.EncryptedPassword | ConvertTo-SecureString
     Return $import
@@ -781,29 +822,29 @@ function Get-vCenterCredentials ($InputFile)
 # if we have the job parameter set, get the paths from the config file.
 if ($job) {
 	[xml]$jobConfig = Get-Content $job
-	
+
 	# Use GlobalVariables path if it is valid, otherwise use default
 	if (Test-Path $jobConfig.vCheck.globalVariables) {
 		$GlobalVariables = (Get-Item $jobConfig.vCheck.globalVariables).FullName
 	} else {
 		$GlobalVariables = $ScriptPath + "\GlobalVariables.ps1"
-		Write-Warning ($lang.gvInvalid -f $GlobalVariables)
+		Write-ColorOutput -Message ($lang.gvInvalid -f $GlobalVariables) -ForegroundColor Yellow
 	}
-	
+
 	# Get Plugin paths
 	$PluginPaths = @()
 	if ($jobConfig.vCheck.plugins.path) {
 		foreach ($PluginPath in ($jobConfig.vCheck.plugins.path -split ";")) {
 			if (Test-Path $PluginPath) {
 				$PluginPaths += (Get-Item $PluginPath).Fullname
-				$PluginPaths += Get-Childitem $PluginPath -Recurse | ?{ $_.PSIsContainer } | Select-Object -ExpandProperty FullName
+				$PluginPaths += Get-Childitem $PluginPath -Recurse | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty FullName
 			} else {
 				$PluginPaths += $ScriptPath + "\Plugins"
-				Write-Warning ($lang.pluginpathInvalid -f $PluginPath, ($ScriptPath + "\Plugins"))
+				Write-ColorOutput -Message ($lang.pluginpathInvalid -f $PluginPath, ($ScriptPath + "\Plugins")) -ForegroundColor Yellow
 			}
 		}
 		$PluginPaths = $PluginPaths | Sort-Object -unique
-		
+
 		# Get all plugins and test they are correct
 		$vCheckPlugins = @()
 		foreach ($plugin in $jobConfig.vCheck.plugins.plugin) {
@@ -816,7 +857,7 @@ if ($job) {
 				}
 				# Plugin not found in any search path
 				elseif ($testedPaths -eq $PluginPaths.Count) {
-					Write-Warning ($lang.pluginInvalid -f $plugin)
+					Write-ColorOutput -Message ($lang.pluginInvalid -f $plugin) -ForegroundColor Yellow
 				}
 			}
 		}
@@ -829,7 +870,7 @@ if ($job) {
 	$ToNatural = { [regex]::Replace($_, '\d+', { $args[0].Value.PadLeft(20) }) }
 	$vCheckPlugins = @(Get-ChildItem -Path $PluginsFolder -filter "*.ps1" -Recurse | Where-Object { $_.Directory -match "initialize" } | Sort-Object $ToNatural)
 	$PluginsSubFolder = Get-ChildItem -Path $PluginsFolder | Where-Object { ($_.PSIsContainer) -and ($_.Name -notmatch "initialize") -and ($_.Name -notmatch "finish") }
-	$vCheckPlugins += $PluginsSubFolder | % { Get-ChildItem -Path $_.FullName -filter "*.ps1" | Sort-Object $ToNatural }
+	$vCheckPlugins += $PluginsSubFolder | ForEach-Object { Get-ChildItem -Path $_.FullName -filter "*.ps1" | Sort-Object $ToNatural }
 	$vCheckPlugins += Get-ChildItem -Path $PluginsFolder -filter "*.ps1" -Recurse | Where-Object { $_.Directory -match "finish" } | Sort-Object $ToNatural
 	$GlobalVariables = $ScriptPath + "\GlobalVariables.ps1"
 }
@@ -847,7 +888,7 @@ $SetupSetting = Invoke-Expression (($file[$SetupLine]).Split("="))[1]
 $vcvars = @("SetupWizard", "reportHeader", "SMTPSRV", "EmailFrom", "EmailTo", "EmailSubject", "DisplaytoScreen", "SendEmail", "SendAttachment", "TimeToRun", "PluginSeconds", "Style", "Date")
 foreach ($vcvar in $vcvars) {
 	if (!($(Get-Variable -Name "$vcvar" -Erroraction 'SilentlyContinue'))) {
-		Write-Error ($lang.varUndefined -f $vcvar)
+		Write-ColorOutput -Message ($lang.varUndefined -f $vcvar) -ForegroundColor Red
 	}
 }
 
@@ -859,26 +900,26 @@ $StylePath = $ScriptPath + "\Styles\" + $Style
 if (!(Test-Path ($StylePath))) {
 	# The path is not valid
 	# Use the default style
-	Write-Warning "Style path ($($StylePath)) is not valid"
+	Write-ColorOutput -Message "Style path ($($StylePath)) is not valid"
 	$StylePath = $ScriptPath + "\Styles\VMware"
-	Write-Warning "Using $($StylePath)"
+	Write-ColorOutput -Message "Using $($StylePath)"
 }
 
 # Import the Style
 . ("$($StylePath)\Style.ps1")
 
 
-if ($SetupSetting -or $config -or $GUIConfig) {	
+if ($SetupSetting -or $config -or $GUIConfig) {
 	#Clear-Host
-	
-	($lang.GetEnumerator() | Where-Object { $_.Name -match "setupMsg[0-9]*" } | Sort-Object Name) | ForEach-Object {		
-		Write-Warning -Message "$($_.value)"
-	}	
+
+	($lang.GetEnumerator() | Where-Object { $_.Name -match "setupMsg[0-9]*" } | Sort-Object Name) | ForEach-Object {
+		Write-ColorOutput -Message "$($_.value)" -ForegroundColor Green
+	}
 
 	if ($GUIConfig) {
-		$PluginResult = @()        
+		$PluginResult = @()
 
-		# Set the output filename 
+		# Set the output filename
 		if (-not (Test-Path -PathType Container $Outputpath)) { New-Item $Outputpath -type directory | Out-Null }
 		$Filename = ("{0}\{1}_vCheck-Config_{2}.html" -f $Outputpath, $Server, (Get-Date -Format "yyyyMMdd_HHmm"))
 
@@ -901,8 +942,8 @@ if ($SetupSetting -or $config -or $GUIConfig) {
 
 		$embedConfig | Out-File $Filename
 		Invoke-Item $Filename
-		($lang.GetEnumerator() | Where-Object { $_.Name -match "configMsg[0-9]*" } | Sort-Object Name) | ForEach-Object {		
-			Write-Warning -Message "$($_.value)"
+		($lang.GetEnumerator() | Where-Object { $_.Name -match "configMsg[0-9]*" } | Sort-Object Name) | ForEach-Object {
+			Write-ColorOutput -Message "$($_.value)" -ForegroundColor Green
 		}
 
 	} elseif ($SetupSetting -or $config) {
@@ -923,11 +964,11 @@ if (-not $GUIConfig) {
 	# Start generating the report
 	$PluginResult = @()
 
-	Write-Warning -Message $lang.pluginBegin
+	Write-ColorOutput -Message $lang.pluginBegin -ForegroundColor Green
 
 	# Loop over all enabled plugins
 	$p = 0
-	$vCheckPlugins | Foreach {
+	$vCheckPlugins | ForEach-Object {
 		$TableFormat = $null
 		$PluginInfo = Get-PluginID $_.Fullname
 		$p++
@@ -1020,7 +1061,7 @@ if (-not $GUIConfig) {
 			$pr | Add-Member -Type NoteProperty -Name pluginID -Value "plugin-$p"
 			$p++
 		}
-		if ($pr.Details -ne $null)
+		if ($null -ne $pr.Details)
 		{
 			$emptyReport = $false
 		}
@@ -1029,7 +1070,7 @@ if (-not $GUIConfig) {
 	# Run Style replacement
 	$MyReport = Get-ReportHTML
 
-	# Set the output filename 
+	# Set the output filename
 	if (-not (Test-Path -PathType Container $Outputpath)) { New-Item $Outputpath -type directory | Out-Null }
 	$Filename = ("{0}\{1}_vCheck_{2}.htm" -f $Outputpath, $VIServer, (Get-Date -Format "yyyyMMdd_HHmm"))
 

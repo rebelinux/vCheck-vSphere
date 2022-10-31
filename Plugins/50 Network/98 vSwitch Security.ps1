@@ -54,7 +54,7 @@ if ($VersionOK)
 {
     [array] $results = $null
 
-    Get-VirtualSwitch | Where-Object { $_.Name -notmatch $IgnoreNets } | ForEach-Object {
+    Get-VirtualSwitch -Standard | Where-Object { $_.Name -notmatch $IgnoreNets } | ForEach-Object {
         $Output = "" | Select-Object Host, Type, vSwitch, Portgroup, AllowPromiscuous, ForgedTransmits, MacChanges
         if ($_.ExtensionData.Summary -ne $null)
         {
@@ -112,7 +112,7 @@ if ($VersionOK)
 }
 else
 {
-    Write-Warning "PowerCLi version installed is lower than 5.1 Release 2"
+    Write-ColorOutput -Message "PowerCLi version installed is lower than 5.1 Release 2" -ForegroundColor Yellow
     New-Object PSObject -Property @{"Message" = "PowerCLi version installed is lower than 5.1 Release 2, please update to use this plugin" }
 }
 
