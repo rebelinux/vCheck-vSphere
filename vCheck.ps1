@@ -97,6 +97,53 @@ Import-LocalizedData -BaseDirectory ($ScriptPath + "\Lang") -BindingVariable lan
 #                                  Functions                                   #
 ################################################################################
 <# Write timestamped output to screen #>
+
+Function Write-ColorOutput {
+    <#
+.DESCRIPTION
+    Allow to set colored output.
+.NOTES
+    Updated: 20221030
+    Updated By: Jonathan Colon
+    Update Notes:
+    - Initial creation
+#>
+
+[CmdletBinding()]
+param (
+    [parameter(Position = 0)]
+    [Parameter(Mandatory = $true)]
+    [Alias('Message')]
+    [String] $String,
+    [parameter(Position = 1)]
+    [System.ConsoleColor] $ForegroundColor = $host.UI.RawUI.ForegroundColor,
+    [parameter(Position = 2)]
+    [System.ConsoleColor] $BackgroundColor = $host.UI.RawUI.BackgroundColor
+)
+
+process {
+    # save the current color
+    $FColor = $host.UI.RawUI.ForegroundColor
+    $BColor = $host.UI.RawUI.BackgroundColor
+
+    # set the new color
+    $host.UI.RawUI.ForegroundColor = $ForegroundColor
+    $host.UI.RawUI.BackgroundColor = $BackgroundColor
+
+    # output
+    if ($args) {
+        Write-Output $String
+    }
+    else {
+        $String | Write-Output
+    }
+
+    # restore the original color
+    $host.UI.RawUI.ForegroundColor = $FColor
+    $host.UI.RawUI.BackgroundColor = $BColor
+}
+} # end Function Write-ColorOutput
+
 function Write-CustomOut ($Details) {
 	$LogDate = Get-Date -Format "HH:mm:ss"
 	Write-ColorOutput -Message "[$($LogDate)] $Details" -ForegroundColor Gray
@@ -136,48 +183,6 @@ Function Get-PluginID ($Filename) {
 
 	return @{ "Title" = $Title; "Version" = $Ver; "Author" = $Author }
 }
-
-Function Write-ColorOutput {
-    <#
-.DESCRIPTION
-    Allow to set colored output.
-.NOTES
-    Updated: 20221030
-    Updated By: Jonathan Colon
-    Update Notes:
-    - Initial creation
-#>
-
-[CmdletBinding()]
-param (
-    [Alias('Message')]
-    [String] $String,
-    [System.ConsoleColor] $ForegroundColor = $host.UI.RawUI.ForegroundColor,
-    [System.ConsoleColor] $BackgroundColor = $host.UI.RawUI.BackgroundColor
-)
-
-process {
-    # save the current color
-    $FColor = $host.UI.RawUI.ForegroundColor
-    $BColor = $host.UI.RawUI.BackgroundColor
-
-    # set the new color
-    $host.UI.RawUI.ForegroundColor = $ForegroundColor
-    $host.UI.RawUI.BackgroundColor = $BackgroundColor
-
-    # output
-    if ($args) {
-        Write-Output $String
-    }
-    else {
-        $String | Write-Output
-    }
-
-    # restore the original color
-    $host.UI.RawUI.ForegroundColor = $FColor
-    $host.UI.RawUI.BackgroundColor = $BColor
-}
-} # end Function Write-ColorOutput
 
 Function Invoke-Settings {
 
