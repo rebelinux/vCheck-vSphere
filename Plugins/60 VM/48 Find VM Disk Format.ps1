@@ -1,4 +1,4 @@
-# Start of Settings 
+# Start of Settings
 # Report on disk formats that are not "thin" or "thick", which format is not allowed?
 $diskformat = "thick"
 # Specify Datastores to filter from report
@@ -9,7 +9,7 @@ $DatastoreIgnore = "local"
 $diskformat = Get-vCheckSetting $Title "diskformat" $diskformat
 $DatastoreIgnore = Get-vCheckSetting $Title "DatastoreIgnore" $DatastoreIgnore
 
-$VM | Get-HardDisk -DiskType Flat | Where-Object {($_.storageformat -match $diskformat) -and ($_.Filename -notmatch $DatastoreIgnore)} | Select-Object @{N="VM";E={$_.parent.name}}, @{N="DiskName";E={$_.name}}, @{N="Format";E={$_.storageformat}}, @{N="FileName";E={$_.filename}}
+$VM | Get-HardDisk -DiskType Flat | Where-Object { ($_.storageformat -match $diskformat) -and ($_.Filename -notmatch $DatastoreIgnore) } | Select-Object @{N = "VM"; E = { $_.parent.name } }, @{N = "DiskName"; E = { $_.name } }, @{N = "Format"; E = { $_.storageformat } }, @{N = "FileName"; E = { $_.filename } }
 
 $Title = "Find VMs with thick or thin provisioned vmdk"
 $Header = "VMs with $diskformat provisioned vmdk(s): [count]"

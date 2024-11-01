@@ -9,8 +9,8 @@ $PluginCategory = "vSphere"
 # Start of Settings
 # VMs which should be excluded from results (regex)
 $excludedVMs = "$Z-VRA"
-# End of Settings 
+# End of Settings
 
 $VM | Select-Object Name, DrsAutomationLevel, HARestartPriority, HAIsolationResponse |
-    Where-Object {($_.Name -notmatch $excludedVMs) -and ($_.DrsAutomationLevel -ne "AsSpecifiedByCluster" -or $_.HARestartPriority -ne "ClusterRestartPriority" -or $_.HAIsolationResponse -ne "AsSpecifiedByCluster")} |
-    Sort-Object Name
+Where-Object { ($_.Name -notmatch $excludedVMs) -and ($_.DrsAutomationLevel -ne "AsSpecifiedByCluster" -or $_.HARestartPriority -ne "ClusterRestartPriority" -or $_.HAIsolationResponse -ne "AsSpecifiedByCluster") } |
+Sort-Object Name

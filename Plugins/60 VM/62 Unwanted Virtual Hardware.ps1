@@ -16,12 +16,12 @@ $ExcludeVM = "vm1|vm2"
 $unwantedHardware = Get-vCheckSetting $Title "unwantedHardware" $unwantedHardware
 
 foreach ($vmguest in ($FullVM | Where-Object { $_.Name -notmatch $ExcludeVM })) {
-   $vmguest.Config.Hardware.Device | Where-Object {$_.GetType().Name -match $unwantedHardware} | Foreach-Object {
-      New-Object -TypeName PSObject -Property @{
-         Name = $vmguest.name 
-         Label = $_.DeviceInfo.Label
-      }
-   }
+    $vmguest.Config.Hardware.Device | Where-Object { $_.GetType().Name -match $unwantedHardware } | ForEach-Object {
+        New-Object -TypeName PSObject -Property @{
+            Name = $vmguest.name
+            Label = $_.DeviceInfo.Label
+        }
+    }
 }
 
 #Thanks to @lucd http://communities.vmware.com/message/1546618

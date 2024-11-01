@@ -15,8 +15,8 @@ $IgnoreDSCluster = "IgnoreMe"
 $IgnoreDSCluster = Get-vCheckSetting $Title "IgnoreDSCluster" $IgnoreDSCluster
 
 $DatastoreClustersView |
-   Where-Object {$_.Name -notmatch $IgnoreDSCluster -and ($_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.Enabled -ne $true -or $_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.DefaultVmBehavior -ne "automated")} |
-   Select-Object Name, @{N="sDRS Enabled";E={$_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.Enabled}}, @{N="sDRS Automation Level";E={$_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.DefaultVmBehavior}}
+Where-Object { $_.Name -notmatch $IgnoreDSCluster -and ($_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.Enabled -ne $true -or $_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.DefaultVmBehavior -ne "automated") } |
+Select-Object Name, @{N = "sDRS Enabled"; E = { $_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.Enabled } }, @{N = "sDRS Automation Level"; E = { $_.PodStorageDrsEntry.StorageDrsConfig.PodConfig.DefaultVmBehavior } }
 
 # Changelog
 ## 1.0 : Initial Version

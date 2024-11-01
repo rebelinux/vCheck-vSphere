@@ -9,8 +9,8 @@ $PluginCategory = "vSphere"
 # Start of Settings
 # End of Settings
 
-$EphemeralPG = Get-VDSwitch | Get-VDPortgroup | Where-Object {$_.PortBinding -eq "Ephemeral"}
-$VM | Get-NetworkAdapter | Where-Object {$_.NetworkName -in $EphemeralPG.Name} | Select-Object @{Name="VMName"; Expression={$_.parent}}, @{Name="Portgroup"; Expression={$_.NetworkName}}
+$EphemeralPG = Get-VDSwitch | Get-VDPortgroup | Where-Object { $_.PortBinding -eq "Ephemeral" }
+$VM | Get-NetworkAdapter | Where-Object { $_.NetworkName -in $EphemeralPG.Name } | Select-Object @{Name = "VMName"; Expression = { $_.parent } }, @{Name = "Portgroup"; Expression = { $_.NetworkName } }
 
 # Change Log
 ## 1.0 : Initial release

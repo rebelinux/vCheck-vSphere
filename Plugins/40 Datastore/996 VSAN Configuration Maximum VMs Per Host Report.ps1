@@ -1,5 +1,5 @@
 $Title = "VSAN Configuration Maximum VMs Per Host Report"
-$Header =  "VSAN Config Max - VMs Per Host"
+$Header = "VSAN Config Max - VMs Per Host"
 $Display = "Table"
 $Author = "William Lam"
 $PluginVersion = 1.2
@@ -17,19 +17,20 @@ $vsanWarningThreshold = Get-vCheckSetting $Title "vsanWarningThreshold" $vsanWar
 $vsanTotalVMsHostMaximum = 100
 
 foreach ($cluster in $clusviews) {
-   if($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
-      foreach ($vmhost in $cluster.Host | Sort-Object -Property Name) {
-         $vmhostView = Get-View $vmhost -Property Name,Vm
-         $totalVMs = ($vmhostView.Vm | Measure-Object).count
-         $checkValue = [int]($totalVMs/$vsanTotalVMsHostMaximum * 100)
+    if ($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
+        foreach ($vmhost in $cluster.Host | Sort-Object -Property Name) {
+            $vmhostView = Get-View $vmhost -Property Name, Vm
+            $totalVMs = ($vmhostView.Vm | Measure-Object).count
+            $checkValue = [int]($totalVMs / $vsanTotalVMsHostMaximum * 100)
 
-         if($checkValue -gt $vsanWarningThreshold) {
-            New-Object -TypeName PSObject -Property @{
-            "VMHost" = $vmhostView.Name
-            "VMCount" = $totalVMs }
-         }
-      }
-   }
+            if ($checkValue -gt $vsanWarningThreshold) {
+                New-Object -TypeName PSObject -Property @{
+                    "VMHost" = $vmhostView.Name
+                    "VMCount" = $totalVMs
+                }
+            }
+        }
+    }
 }
 
 $Comments = ("VSAN hosts approaching {0}% limit of {1} VMs per host" -f $vsanWarningThreshold, $vsanTotalVMsHostMaximum)

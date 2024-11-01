@@ -6,20 +6,20 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.1
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
 $clualarms = @()
 foreach ($clusview in $clusviews) {
-   if ($clusview.ConfigIssue) {           
-      $CluConfigIssues = $clusview.ConfigIssue
-      Foreach ($CluConfigIssue in $CluConfigIssues) {
-         $Details = "" | Select-Object Name, Message
-         $Details.name = $clusview.name
-         $Details.Message = $CluConfigIssue.FullFormattedMessage
-         $clualarms += $Details
-      }
-   }
+    if ($clusview.ConfigIssue) {
+        $CluConfigIssues = $clusview.ConfigIssue
+        Foreach ($CluConfigIssue in $CluConfigIssues) {
+            $Details = "" | Select-Object Name, Message
+            $Details.name = $clusview.name
+            $Details.Message = $CluConfigIssue.FullFormattedMessage
+            $clualarms += $Details
+        }
+    }
 }
 
 $clualarms | Sort-Object name

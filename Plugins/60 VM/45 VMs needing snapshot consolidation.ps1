@@ -6,9 +6,9 @@ $Author = "Luc Dekens, Frederic Martin"
 $PluginVersion = 1.3
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
 $htabHostVersion = @{}
-$HostsViews | Foreach-Object {$htabHostVersion.Add($_.MoRef,$_.config.product.version)}
-$FullVM | Where-Object {$htabHostVersion[$_.runtime.host].Split('.')[0] -ge 5 -and $_.runtime.consolidationNeeded} | Sort-Object -Property Name | Select-Object Name,@{N="Consolidation needed";E={$_.Runtime.consolidationNeeded}}
+$HostsViews | ForEach-Object { $htabHostVersion.Add($_.MoRef, $_.config.product.version) }
+$FullVM | Where-Object { $htabHostVersion[$_.runtime.host].Split('.')[0] -ge 5 -and $_.runtime.consolidationNeeded } | Sort-Object -Property Name | Select-Object Name, @{N = "Consolidation needed"; E = { $_.Runtime.consolidationNeeded } }

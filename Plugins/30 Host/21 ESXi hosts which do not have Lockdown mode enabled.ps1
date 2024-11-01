@@ -6,10 +6,7 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.1
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-$VMH | Where-Object {@("Connected","Maintenance") -contains $_.ConnectionState -and 
-              $_.ExtensionData.Summary.Config.Product.Name -match "i" -and 
-              -not $_.ExtensionData.Config.AdminDisabled} | `
-                 Select-Object Name, @{N="LockedMode";E={$_.ExtensionData.Config.AdminDisabled}}
+$VMH | Where-Object { @("Connected", "Maintenance") -contains $_.ConnectionState -and $_.ExtensionData.Summary.Config.Product.Name -match "i" -and -not $_.ExtensionData.Config.AdminDisabled } | Select-Object Name, @{N = "LockedMode"; E = { $_.ExtensionData.Config.AdminDisabled } }

@@ -6,11 +6,11 @@ $Author = "Marc Bouchard"
 $PluginVersion = 1.1
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # End of Settings
 
-$VM | Select-Object Name, @{N="Virtual Exec"; E={$_.ExtensionData.Config.Flags.VirtualExecUsage}}, @{N="Virtual MMU"; E={$_.ExtensionData.Config.Flags.VirtualMmuUsage}}
+$VM | Select-Object Name, @{N = "Virtual Exec"; E = { $_.ExtensionData.Config.Flags.VirtualExecUsage } }, @{N = "Virtual MMU"; E = { $_.ExtensionData.Config.Flags.VirtualMmuUsage } }
 
 # Change Log
 ## 1.0 : Initial release
-## 1.1 : Remove Get-VM
+## 1.1 : Remove Get-VMs

@@ -7,24 +7,22 @@ $PluginVersion = 1.0
 $PluginCategory = "vSphere"
 
 # Start of Settings
-# End of Settings 
+# End of Settings
 
-Foreach ($CHKVM in $FullVM)
-{
-   $vmxDatastore = (($CHKVM.Summary.Config.VmPathName).Split(']')[0].TrimStart('['))
-   $vmdkDatastores = @()
-   $CHKVM.Config.Hardware.Device | % {
-      If ($_.Backing.Filename -ne $null) 
-      {
-         $vmdkDatastores += ($_.Backing.Filename).Split(']')[0].TrimStart('[')
-      }
-   }
-    
-   If ( -not ($vmdkDatastores.Contains($vmxDatastore)))
-   {
-      New-Object -TypeName PSObject -Property @{
-         "VM" = $CHKVM.Name
-         "VmxDatastore" = $vmxDatastore
-         "VmdkDatastores" = ($vmdkDatastores -join ", ") }
+Foreach ($CHKVM in $FullVM) {
+    $vmxDatastore = (($CHKVM.Summary.Config.VmPathName).Split(']')[0].TrimStart('['))
+    $vmdkDatastores = @()
+    $CHKVM.Config.Hardware.Device | ForEach-Object {
+        If ($_.Backing.Filename -ne $null) {
+            $vmdkDatastores += ($_.Backing.Filename).Split(']')[0].TrimStart('[')
+        }
+    }
+
+    If ( -not ($vmdkDatastores.Contains($vmxDatastore))) {
+        New-Object -TypeName PSObject -Property @{
+            "VM" = $CHKVM.Name
+            "VmxDatastore" = $vmxDatastore
+            "VmdkDatastores" = ($vmdkDatastores -join ", ")
+        }
     }
 }

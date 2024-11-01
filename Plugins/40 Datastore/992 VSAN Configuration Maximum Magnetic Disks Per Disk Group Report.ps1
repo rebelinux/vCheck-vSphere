@@ -1,5 +1,5 @@
 $Title = "VSAN Configuration Maximum Magnetic Disks Per Disk Group Report"
-$Header =  "VSAN Config Max - Magnetic Disks Per Disk Group"
+$Header = "VSAN Config Max - Magnetic Disks Per Disk Group"
 $Display = "Table"
 $Author = "William Lam"
 $PluginVersion = 1.2
@@ -17,22 +17,23 @@ $vsanWarningThreshold = Get-vCheckSetting $Title "vsanWarningThreshold" $vsanWar
 $vsanMDMaximum = 7
 
 foreach ($cluster in $clusviews) {
-   if($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
-      foreach ($vmhost in $cluster.Host | Sort-Object -Property Name) {
-         $vmhostView = Get-View $vmhost -Property Name,ConfigManager.VsanSystem
-         $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
-         foreach ($diskMapping in $vsanSys.Config.StorageInfo.DiskMapping) {
-            $mds = ($diskMapping.NonSsd | Measure-Object).count
-            $checkValue = [int]($mds/$vsanMDMaximum * 100)
+    if ($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
+        foreach ($vmhost in $cluster.Host | Sort-Object -Property Name) {
+            $vmhostView = Get-View $vmhost -Property Name, ConfigManager.VsanSystem
+            $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
+            foreach ($diskMapping in $vsanSys.Config.StorageInfo.DiskMapping) {
+                $mds = ($diskMapping.NonSsd | Measure-Object).count
+                $checkValue = [int]($mds / $vsanMDMaximum * 100)
 
-            if($checkValue -gt $vsanWarningThreshold) {
-               New-Object -TypeName PSObject -Property @{
-                  "VMHost" = $vmhostView.Name
-                  "MDCount" = $mds }
+                if ($checkValue -gt $vsanWarningThreshold) {
+                    New-Object -TypeName PSObject -Property @{
+                        "VMHost" = $vmhostView.Name
+                        "MDCount" = $mds
+                    }
+                }
             }
-         }
-      }
-   }
+        }
+    }
 }
 
 $Comments = ("VSAN hosts approaching {0}% limit of {1} magnetic disks per Disk Group" -f $vsanWarningThreshold, $vsanMDMaximum)

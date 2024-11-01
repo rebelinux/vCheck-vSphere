@@ -6,19 +6,19 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.3
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
 $vmsalarms = @()
-foreach ($VMView in ($FullVM | Where-Object {$_.TriggeredAlarmState})){
-   Foreach ($VMsTriggeredAlarm in $VMView.TriggeredAlarmState){
-      New-Object -TypeName PSObject -Property @{
-         Object = $VMView.name
-         Alarm = ($valarms |Where-Object {$_.value -eq ($VMsTriggeredAlarm.alarm.value)}).name
-         Status = $VMsTriggeredAlarm.OverallStatus
-         Time = $VMsTriggeredAlarm.time
-      }
-   }
+foreach ($VMView in ($FullVM | Where-Object { $_.TriggeredAlarmState })) {
+    Foreach ($VMsTriggeredAlarm in $VMView.TriggeredAlarmState) {
+        New-Object -TypeName PSObject -Property @{
+            Object = $VMView.name
+            Alarm = ($valarms | Where-Object { $_.value -eq ($VMsTriggeredAlarm.alarm.value) }).name
+            Status = $VMsTriggeredAlarm.OverallStatus
+            Time = $VMsTriggeredAlarm.time
+        }
+    }
 }
 
 # Change Log

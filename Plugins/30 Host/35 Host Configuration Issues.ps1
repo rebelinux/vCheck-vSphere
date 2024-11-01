@@ -10,7 +10,7 @@ $PluginCategory = "vSphere"
 # End of Settings
 
 $hostcialarms = @()
-foreach ($HostsView in $HostsViews | Where-Object {$_.Summary.Runtime.ConnectionState -eq 'connected'}) {
+foreach ($HostsView in $HostsViews | Where-Object { $_.Summary.Runtime.ConnectionState -eq 'connected' }) {
     if ($HostsView.ConfigIssue) {
         $HostConfigIssues = $HostsView.ConfigIssue
         Foreach ($HostConfigIssue in $HostConfigIssues) {

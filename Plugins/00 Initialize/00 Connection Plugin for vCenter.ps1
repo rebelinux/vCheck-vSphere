@@ -18,7 +18,7 @@ $Server = Get-vCheckSetting $Title "Server" $Server
 
 # Setup plugin-specific language table
 $pLang = DATA {
-   ConvertFrom-StringData @' 
+    ConvertFrom-StringData @'
       connReuse = Re-using connection to VI Server
       connOpen  = Connecting to VI Server
       connError = Unable to connect to vCenter, please ensure you have altered the vCenter server address correctly. To specify a username and password edit the connection string in the file $GlobalVariables
@@ -44,11 +44,9 @@ Import-LocalizedData -BaseDirectory ($ScriptPath + "\Lang") -BindingVariable pLa
 # Find the VI Server and port from the global settings file
 $VIServer = ($Server -Split ":")[0]
 if (($server -split ":")[1]) {
-   $port = ($server -split ":")[1]
-}
-else
-{
-   $port = 443
+    $port = ($server -split ":")[1]
+} else {
+    $port = 443
 }
 
 # Path to vCenter credentials file which will be created if not already existing
@@ -69,7 +67,7 @@ function Get-CorePlatform {
     param()
     #Thanks to @Lucd22 (Lucd.info) for this great function!
     $osDetected = $false
-    try{
+    try {
         $os = Get-CimInstance -ClassName Win32_OperatingSystem
         Write-Verbose -Message 'Windows detected'
         $osDetected = $true
@@ -78,11 +76,10 @@ function Get-CorePlatform {
         $osVersion = $os.Version
         $nodeName = $os.CSName
         $architecture = $os.OSArchitecture
-    }
-    catch{
+    } catch {
         Write-Verbose -Message 'Possibly Linux or Mac'
         $uname = "$(uname)"
-        if($uname -match '^Darwin|^Linux'){
+        if ($uname -match '^Darwin|^Linux') {
             $osDetected = $true
             $osFamily = $uname
             $osName = "$(uname -v)"
@@ -91,8 +88,7 @@ function Get-CorePlatform {
             $architecture = "$(uname -p)"
         }
         # Other
-        else
-        {
+        else {
             Write-Warning -Message "Kernel $($uname) not covered"
         }
     }
@@ -108,38 +104,38 @@ function Get-CorePlatform {
 
 $Platform = Get-CorePlatform
 switch ($platform.OSFamily) {
-    "Darwin" { 
+    "Darwin" {
         $templocation = "/tmp"
         $Outputpath = $templocation
         Get-Module -ListAvailable PowerCLI* | Import-Module
     }
-    "Linux" { 
+    "Linux" {
         $templocation = "/tmp"
         $Outputpath = $templocation
         Get-Module -ListAvailable PowerCLI* | Import-Module
     }
-    "Windows" { 
+    "Windows" {
         $templocation = "$ENV:Temp"
         $pcliCore = 'VMware.VimAutomation.Core'
 
         $pssnapinPresent = $false
         $psmodulePresent = $false
 
-        if(Get-Module -Name $pcliCore -ListAvailable){
+        if (Get-Module -Name $pcliCore -ListAvailable) {
             $psmodulePresent = $true
-            if(!(Get-Module -Name $pcliCore)){
+            if (!(Get-Module -Name $pcliCore)) {
                 Import-Module -Name $pcliCore
             }
         }
 
-        if(Get-PSSnapin -Name $pcliCore -Registered -ErrorAction SilentlyContinue){
+        if (Get-PSSnapin -Name $pcliCore -Registered -ErrorAction SilentlyContinue) {
             $pssnapinPresent = $true
-            if(!(Get-PSSnapin -Name $pcliCore -ErrorAction SilentlyContinue)){
+            if (!(Get-PSSnapin -Name $pcliCore -ErrorAction SilentlyContinue)) {
                 Add-PSSnapin -Name $pcliCore
             }
         }
 
-        if(!$pssnapinPresent -and !$psmodulePresent){
+        if (!$pssnapinPresent -and !$psmodulePresent) {
             Write-Error "Can't find PowerCLI. Is it installed?"
             return
         }
@@ -147,7 +143,7 @@ switch ($platform.OSFamily) {
 }
 
 $OpenConnection = $global:DefaultVIServers | Where-Object { $_.Name -eq $VIServer }
-if($OpenConnection.IsConnected) {
+if ($OpenConnection.IsConnected) {
     Write-CustomOut ( "{0}: {1}" -f $pLang.connReuse, $Server )
     $VIConnection = $OpenConnection
 } else {
@@ -162,11 +158,11 @@ if($OpenConnection.IsConnected) {
 }
 
 if (-not $VIConnection.IsConnected) {
-   Write-Error $pLang.connError
+    Write-Error $pLang.connError
 }
 
 function Get-VMFolderPath {
-<#
+    <#
 .Synopsis
 
 Get vm folder path. From Datacenter to folder that keeps the vm.
@@ -233,25 +229,25 @@ http://psvmware.wordpress.com
         [switch]$moref
     )
 
-    $folderparent = get-view $folderid
-    if ($folderparent.name -ne 'vm') {
-        if ($moref) { $path = $folderparent.moref.toString() + '\' + $path }
-        else {
-            $path = $folderparent.name + '\' + $path
-        }
-        if ($folderparent.parent) {
-            if ($moref) { get-vmfolderpath $folderparent.parent.tostring() -moref }
+    process {
+        $folderparent = Get-View $folderid
+        if ($folderparent.name -ne 'vm') {
+            if ($moref) { $path = $folderparent.moref.toString() + '\' + $path }
             else {
-                get-vmfolderpath($folderparent.parent.tostring())
+                $path = $folderparent.name + '\' + $path
             }
-        }
-    }
-    else {
-        if ($moref) {
-            return (get-view $folderparent.parent).moref.tostring() + '\' + $folderparent.moref.tostring() + '\' + $path
-        }
-        else {
-            return (get-view $folderparent.parent).name.toString() + '\' + $folderparent.name.toString() + '\' + $path
+            if ($folderparent.parent) {
+                if ($moref) { get-vmfolderpath $folderparent.parent.tostring() -moref }
+                else {
+                    get-vmfolderpath($folderparent.parent.tostring())
+                }
+            }
+        } else {
+            if ($moref) {
+                return (Get-View $folderparent.parent).moref.tostring() + '\' + $folderparent.moref.tostring() + '\' + $path
+            } else {
+                return (Get-View $folderparent.parent).name.toString() + '\' + $folderparent.name.toString() + '\' + $path
+            }
         }
     }
 }
@@ -259,56 +255,55 @@ http://psvmware.wordpress.com
 Write-CustomOut $pLang.custAttr
 
 function Get-VMLastPoweredOffDate {
-  param([Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [VMware.VimAutomation.ViCore.Types.V1.Inventory.VirtualMachine] $vm)
-  process {
-    $Report = "" | Select-Object -Property Name,LastPoweredOffDate
-     $Report.Name = $_.Name
-    $Report.LastPoweredOffDate = (Get-VIEventPlus -Entity $vm | `
-      Where-Object { $_.Gettype().Name -eq "VmPoweredOffEvent" } | `
-       Select-Object -First 1).CreatedTime
-     $Report
-  }
+    process {
+        $Report = "" | Select-Object -Property Name, LastPoweredOffDate
+        $Report.Name = $_.Name
+        $Report.LastPoweredOffDate = (Get-VIEventPlus -Entity $vm | `
+                Where-Object { $_.Gettype().Name -eq "VmPoweredOffEvent" } | `
+                Select-Object -First 1).CreatedTime
+        $Report
+    }
 }
 
 function Get-VMLastPoweredOnDate {
-  param([Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [VMware.VimAutomation.ViCore.Types.V1.Inventory.VirtualMachine] $vm)
 
-  process {
-    $Report = "" | Select-Object -Property Name,LastPoweredOnDate
-     $Report.Name = $_.Name
-    $Report.LastPoweredOnDate = (Get-VIEventPlus -Entity $vm | `
-      Where-Object { $_.Gettype().Name -match "VmPoweredOnEvent" } | `
-       Select-Object -First 1).CreatedTime
-     $Report
-  }
+    process {
+        $Report = "" | Select-Object -Property Name, LastPoweredOnDate
+        $Report.Name = $_.Name
+        $Report.LastPoweredOnDate = (Get-VIEventPlus -Entity $vm | `
+                Where-Object { $_.Gettype().Name -match "VmPoweredOnEvent" } | `
+                Select-Object -First 1).CreatedTime
+        $Report
+    }
 }
 
-New-VIProperty -Name LastPoweredOffDate -ObjectType VirtualMachine -Value {(Get-VMLastPoweredOffDate -vm $Args[0]).LastPoweredOffDate} | Out-Null
-New-VIProperty -Name LastPoweredOnDate -ObjectType VirtualMachine -Value {(Get-VMLastPoweredOnDate -vm $Args[0]).LastPoweredOnDate} | Out-Null
+New-VIProperty -Name LastPoweredOffDate -ObjectType VirtualMachine -Value { (Get-VMLastPoweredOffDate -vm $Args[0]).LastPoweredOffDate } | Out-Null
+New-VIProperty -Name LastPoweredOnDate -ObjectType VirtualMachine -Value { (Get-VMLastPoweredOnDate -vm $Args[0]).LastPoweredOnDate } | Out-Null
 
 New-VIProperty -Name PercentFree -ObjectType Datastore -Value {
-   param($ds)
-   [math]::Round(((100 * ($ds.FreeSpaceMB)) / ($ds.CapacityMB)),2)
+    param($ds)
+    [math]::Round(((100 * ($ds.FreeSpaceMB)) / ($ds.CapacityMB)), 2)
 } -Force | Out-Null
 
 New-VIProperty -Name "HWVersion" -ObjectType VirtualMachine -Value {
-   param($vm)
+    param($vm)
 
-   $vm.ExtensionData.Config.Version.Substring(4)
+    $vm.ExtensionData.Config.Version.Substring(4)
 } -BasedOnExtensionProperty "Config.Version" -Force | Out-Null
 
 Write-CustomOut $pLang.collectVM
 if (-not $IncludeSRMPlaceholders) {
-    $VM = Get-VM | Where-Object {$_.ExtensionData.Config.ManagedBy.Type -ne "placeholderVm"} | Sort-Object Name
-}
-else {
-  $VM = Get-VM | Sort-Object Name
+    $VM = Get-VM | Where-Object { $_.ExtensionData.Config.ManagedBy.Type -ne "placeholderVm" } | Sort-Object Name
+} else {
+    $VM = Get-VM | Sort-Object Name
 }
 
 if ($VMFolder) {
-  $VM = $VM | Where-Object {"$(Get-VMFolderPath $_.folderid)"  -like "*$VMFolder*"} | Sort-Object Name
+    $VM = $VM | Where-Object { "$(Get-VMFolderPath $_.folderid)" -like "*$VMFolder*" } | Sort-Object Name
 }
 
 Write-CustomOut $pLang.collectHost
@@ -319,22 +314,21 @@ Write-CustomOut $pLang.collectDatastore
 $Datastores = Get-Datastore | Sort-Object Name
 Write-CustomOut $pLang.collectDVM
 if (-not $IncludeSRMPlaceholders) {
-  $FullVM = Get-View -ViewType VirtualMachine | Where-Object {-not $_.Config.Template -and $_.Config.ManagedBy.ExtensionKey -ne 'com.vmware.vcDr'}
-}
-else {
-  $FullVM = Get-View -ViewType VirtualMachine | Where-Object {-not $_.Config.Template}
+    $FullVM = Get-View -ViewType VirtualMachine | Where-Object { -not $_.Config.Template -and $_.Config.ManagedBy.ExtensionKey -ne 'com.vmware.vcDr' }
+} else {
+    $FullVM = Get-View -ViewType VirtualMachine | Where-Object { -not $_.Config.Template }
 }
 
 if ($VMFolder) {
     $FullVM = $FullVM | Where-Object { $_.Name -in $VM.Name }
 }
 
-Write-CustomOut $pLang.collectTemplate 
+Write-CustomOut $pLang.collectTemplate
 $VMTmpl = Get-Template
 Write-CustomOut $pLang.collectDVIO
-$ServiceInstance = get-view ServiceInstance
+$ServiceInstance = Get-View ServiceInstance
 Write-CustomOut $pLang.collectAlarm
-$alarmMgr = get-view $ServiceInstance.Content.alarmManager
+$alarmMgr = Get-View $ServiceInstance.Content.alarmManager
 Write-CustomOut $pLang.collectDHost
 $HostsViews = Get-View -ViewType hostsystem
 Write-CustomOut $pLang.collectDCluster
@@ -342,34 +336,34 @@ $clusviews = Get-View -ViewType ClusterComputeResource
 Write-CustomOut $pLang.collectDDatastore
 $storageviews = Get-View -ViewType Datastore
 Write-CustomOut $pLang.collectAlarms
-$valarms = $alarmMgr.GetAlarm($null) | Select-Object value, @{N="name";E={(Get-View -Id $_).Info.Name}}
+$valarms = $alarmMgr.GetAlarm($null) | Select-Object value, @{N = "name"; E = { (Get-View -Id $_).Info.Name } }
 
 # Find out which version of the API we are connecting to
 $VIVersion = ((Get-View ServiceInstance).Content.About.Version).Chars(0)
 
 # Check to see if its a VCSA or not
-if ($ServiceInstance.Client.ServiceContent.About.OsType -eq "linux-x64"){ $VCSA = $true }
+if ($ServiceInstance.Client.ServiceContent.About.OsType -eq "linux-x64") { $VCSA = $true }
 
 # Check for vSphere
-If ($VIVersion -ge 4){
-   $vSphere = $true
+If ($VIVersion -ge 4) {
+    $vSphere = $true
 }
 
 if ($VIVersion -ge 5) {
-   Write-CustomOut $pLang.collectDDatastoreCluster
-   $DatastoreClustersView = Get-View -viewtype StoragePod
+    Write-CustomOut $pLang.collectDDatastoreCluster
+    $DatastoreClustersView = Get-View -ViewType StoragePod
 }
 
-<#   
-.SYNOPSIS  Returns vSphere events    
+<#
+.SYNOPSIS  Returns vSphere events
 .DESCRIPTION The function will return vSphere events. With
    the available parameters, the execution time can be
-   improved, compered to the original Get-VIEvent cmdlet. 
-.NOTES  Author:  Luc Dekens   
+   improved, compered to the original Get-VIEvent cmdlet.
+.NOTES  Author:  Luc Dekens
 .PARAMETER Entity
    When specified the function returns events for the
    specific vSphere entity. By default events for all
-   vSphere entities are returned. 
+   vSphere entities are returned.
 .PARAMETER EventType
    This parameter limits the returned events to those
    specified on this parameter.
@@ -377,23 +371,23 @@ if ($VIVersion -ge 5) {
     This parameter limits the returned events to the
     specified category. (info, warning, error)
 .PARAMETER Start
-   The start date of the events to retrieve 
+   The start date of the events to retrieve
 .PARAMETER Finish
-   The end date of the events to retrieve. 
+   The end date of the events to retrieve.
 .PARAMETER Recurse
    A switch indicating if the events for the children of
-   the Entity will also be returned 
+   the Entity will also be returned
 .PARAMETER User
-   The list of usernames for which events will be returned 
+   The list of usernames for which events will be returned
 .PARAMETER System
-   A switch that allows the selection of all system events. 
+   A switch that allows the selection of all system events.
 .PARAMETER ScheduledTask
    The name of a scheduled task for which the events
-   will be returned 
+   will be returned
 .PARAMETER FullMessage
    A switch indicating if the full message shall be compiled.
    This switch can improve the execution speed if the full
-   message is not needed.   
+   message is not needed.
 .PARAMETER UseUTC
    A switch indicating if the event shoukld remain in UTC or
    local time.
@@ -403,82 +397,82 @@ if ($VIVersion -ge 5) {
    PS> Get-VIEventPlus -Entity $cluster -Recurse:$true
 #>
 function Get-VIEventPlus {
-    
-   param(
-      [VMware.VimAutomation.ViCore.Types.V1.Inventory.InventoryItem[]]$Entity,
-      [string[]]$EventType,
-      [ValidateSet('info','warning','error')]
-      [string[]]$EventCategory,
-      [DateTime]$Start,
-      [DateTime]$Finish = (Get-Date),
-      [switch]$Recurse,
-      [string[]]$User,
-      [Switch]$System,
-      [string]$ScheduledTask,
-      [switch]$FullMessage = $false,
-      [switch]$UseUTC = $false
-   )
 
-   process {
-      $eventnumber = 100
-      $events = New-Object System.Collections.Generic.List[PSObject]
-      $eventMgr = Get-View EventManager
-      $eventFilter = New-Object VMware.Vim.EventFilterSpec
-      $eventFilter.disableFullMessage = ! $FullMessage
-      $eventFilter.entity = New-Object VMware.Vim.EventFilterSpecByEntity
-      $eventFilter.entity.recursion = &{if($Recurse){"all"}else{"self"}}
-      $eventFilter.eventTypeId = $EventType
-      $eventFilter.Category = $EventCategory
-      if($Start -or $Finish){
-         $eventFilter.time = New-Object VMware.Vim.EventFilterSpecByTime
-         if($Start){
-            $eventFilter.time.beginTime = $Start
-         }
-         if($Finish){
-            $eventFilter.time.endTime = $Finish
-         }
-      }
-      if($User -or $System){
-         $eventFilter.UserName = New-Object VMware.Vim.EventFilterSpecByUsername
-         if($User){
-            $eventFilter.UserName.userList = $User
-         }
-         if($System){
-            $eventFilter.UserName.systemUser = $System
-         }
-      }
-      if($ScheduledTask){
-         $si = Get-View ServiceInstance
-         $schTskMgr = Get-View $si.Content.ScheduledTaskManager
-         $eventFilter.ScheduledTask = Get-View $schTskMgr.ScheduledTask |
-         Where-Object {$_.Info.Name -match $ScheduledTask} |
-         Select-Object -First 1 |
-         Select-Object -ExpandProperty MoRef
-      }
-      if(!$Entity){
-         $Entity = @(Get-Folder -NoRecursion)
-      }
-      $entity | Foreach-Object {
-         $eventFilter.entity.entity = $_.ExtensionData.MoRef
-         $eventCollector = Get-View ($eventMgr.CreateCollectorForEvents($eventFilter))
-         $eventsBuffer = $eventCollector.ReadNextEvents($eventnumber)
-         while($eventsBuffer){
-            ForEach ($Item in $eventsBuffer) {
-                if (-not $UseUTC) {
-                    $Item.CreatedTime = $Item.CreatedTime.ToLocalTime()
-                }
-                $events.add($Item)
+    param(
+        [VMware.VimAutomation.ViCore.Types.V1.Inventory.InventoryItem[]]$Entity,
+        [string[]]$EventType,
+        [ValidateSet('info', 'warning', 'error')]
+        [string[]]$EventCategory,
+        [DateTime]$Start,
+        [DateTime]$Finish = (Get-Date),
+        [switch]$Recurse,
+        [string[]]$User,
+        [Switch]$System,
+        [string]$ScheduledTask,
+        [switch]$FullMessage = $false,
+        [switch]$UseUTC = $false
+    )
+
+    process {
+        $eventnumber = 100
+        $events = New-Object System.Collections.Generic.List[PSObject]
+        $eventMgr = Get-View EventManager
+        $eventFilter = New-Object VMware.Vim.EventFilterSpec
+        $eventFilter.disableFullMessage = ! $FullMessage
+        $eventFilter.entity = New-Object VMware.Vim.EventFilterSpecByEntity
+        $eventFilter.entity.recursion = & { if ($Recurse) { "all" }else { "self" } }
+        $eventFilter.eventTypeId = $EventType
+        $eventFilter.Category = $EventCategory
+        if ($Start -or $Finish) {
+            $eventFilter.time = New-Object VMware.Vim.EventFilterSpecByTime
+            if ($Start) {
+                $eventFilter.time.beginTime = $Start
             }
-         }
-         $eventCollector.DestroyCollector()
-      }
+            if ($Finish) {
+                $eventFilter.time.endTime = $Finish
+            }
+        }
+        if ($User -or $System) {
+            $eventFilter.UserName = New-Object VMware.Vim.EventFilterSpecByUsername
+            if ($User) {
+                $eventFilter.UserName.userList = $User
+            }
+            if ($System) {
+                $eventFilter.UserName.systemUser = $System
+            }
+        }
+        if ($ScheduledTask) {
+            $si = Get-View ServiceInstance
+            $schTskMgr = Get-View $si.Content.ScheduledTaskManager
+            $eventFilter.ScheduledTask = Get-View $schTskMgr.ScheduledTask |
+            Where-Object { $_.Info.Name -match $ScheduledTask } |
+            Select-Object -First 1 |
+            Select-Object -ExpandProperty MoRef
+        }
+        if (!$Entity) {
+            $Entity = @(Get-Folder -NoRecursion)
+        }
+        $entity | ForEach-Object {
+            $eventFilter.entity.entity = $_.ExtensionData.MoRef
+            $eventCollector = Get-View ($eventMgr.CreateCollectorForEvents($eventFilter))
+            $eventsBuffer = $eventCollector.ReadNextEvents($eventnumber)
+            while ($eventsBuffer) {
+                ForEach ($Item in $eventsBuffer) {
+                    if (-not $UseUTC) {
+                        $Item.CreatedTime = $Item.CreatedTime.ToLocalTime()
+                    }
+                    $events.add($Item)
+                }
+            }
+            $eventCollector.DestroyCollector()
+        }
 
-      $events
-   }
+        $events
+    }
 }
 
-function Get-FriendlyUnit{
-<#
+function Get-FriendlyUnit {
+    <#
 .SYNOPSIS  Convert numbers into smaller binary multiples
 .DESCRIPTION The function accepts a value and will convert it
 into the biggest binary unit available.
@@ -505,34 +499,33 @@ PS> Get-FriendlyUnit -Value 123456,789123, 45678
         [switch]$IEC
     )
 
-    begin{
-        $OldUnits = "B","KB","MB","GB","TB","PB","EB","ZB","YB"
-        $IecUnits = "B","KiB","MiB","GiB","TiB","PiB","EiB","ZiB","YiB"
-        if($IEC){$units = $IecUnits}else{$units=$OldUnits}
+    begin {
+        $OldUnits = "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"
+        $IecUnits = "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"
+        if ($IEC) { $units = $IecUnits }else { $units = $OldUnits }
     }
 
-    process{
-        $Value | %{
-            if($_ -lt 0){
-                write-Error "Numbers must be positive."
+    process {
+        $Value | ForEach-Object {
+            if ($_ -lt 0) {
+                Write-Error "Numbers must be positive."
                 break
             }
-            if($value -gt 0){
-                $modifier = [math]::Floor([Math]::Log($_,1KB))
-            }
-            else{
+            if ($value -gt 0) {
+                $modifier = [math]::Floor([Math]::Log($_, 1KB))
+            } else {
                 $modifier = 0
             }
             New-Object PSObject -Property @{
-                Value = $_ / [math]::Pow(1KB,$modifier)
-                Unit = &{if($modifier -lt $units.Count){$units[$modifier]}else{"1KB E{0}" -f $modifier}}
+                Value = $_ / [math]::Pow(1KB, $modifier)
+                Unit = & { if ($modifier -lt $units.Count) { $units[$modifier] }else { "1KB E{0}" -f $modifier } }
             }
         }
     }
 }
 
-function Get-HttpDatastoreItem{
-<#
+function Get-HttpDatastoreItem {
+    <#
 .SYNOPSIS  Get file and folder info from datastore
 .DESCRIPTION This function will retrieve a file and folders
 list from a datastore. The function uses the HTTP access to
@@ -564,10 +557,10 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
     [cmdletbinding()]
     param(
         [VMware.VimAutomation.ViCore.Types.V1.VIServer]$Server = $global:DefaultVIServer,
-        [parameter(Mandatory=$true,ValueFromPipelineByPropertyName,ParameterSetName='Datastore')]
+        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName, ParameterSetName = 'Datastore')]
         [Alias('Name')]
         [string]$Datastore,
-        [parameter(Mandatory=$true,ParameterSetName='Path')]
+        [parameter(Mandatory = $true, ParameterSetName = 'Path')]
         [string]$Path = '',
         [PSCredential]$Credential,
         [Switch]$Recurse = $false,
@@ -575,32 +568,30 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
         [Switch]$Unit = $false
     )
 
-    Begin{
+    Begin {
         $regEx = [RegEx]'<tr><td><a.*?>(?<Filename>.*?)</a></td><td.*?>(?<Timestamp>.*?)</td><td.*?>(?<Filesize>[0-9]+|[ -]+)</td></tr>'
     }
 
-    Process{
+    Process {
         Write-Verbose -Message "$(Get-Date) $($s = Get-PSCallStack;">Entering {0}" -f $s[0].FunctionName)"
         Write-Verbose -Message "$(Get-Date) Datastore:$($Datastore)  Path:$($Path)"
         Write-Verbose -Message "$(Get-Date) Recurse:$($Recurse.IsPresent)"
 
-        Switch($PSCmdlet.ParameterSetName){
+        Switch ($PSCmdlet.ParameterSetName) {
             'Datastore' {
                 $Folder = ''
             }
             'Path' {
-                $Datastore,$folderQualifier = $Path.Split('\[\] /',[System.StringSplitOptions]::RemoveEmptyEntries)
+                $Datastore, $folderQualifier = $Path.Split('\[\] /', [System.StringSplitOptions]::RemoveEmptyEntries)
 
-                if(-not $folderQualifier){
+                if (-not $folderQualifier) {
                     $lastParent = ''
                     $lastQualifier = ''
-                }
-                else{
-                    if($folderQualifier.Count -eq 1){
+                } else {
+                    if ($folderQualifier.Count -eq 1) {
                         $lastParent = ''
                         $lastQualifier = "$($folderQualifier)$(if($Path -match "/$"){'/'})"
-                    }
-                    else{
+                    } else {
                         $lastQualifier = "$($folderQualifier[-1])$(if($Path -match "/$"){'/'})"
                         $lastParent = "$($folderQualifier[0..($folderQualifier.Count-2)] -join '/')/"
                     }
@@ -608,14 +599,14 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
             }
             Default {
                 Throw "Invalid parameter combination"
-            }                                                                                                                                                                        
+            }
         }
         $folderQualifier = $folderQualifier -join '/'
-        if($Path -match "/$" -and $folderQualifier -notmatch "/$"){
+        if ($Path -match "/$" -and $folderQualifier -notmatch "/$") {
             $folderQualifier += '/'
         }
-        $stack = Get-PSCallStack | Select -ExpandProperty Command
-        if(($stack | Group-Object -AsHashTable -AsString)[$stack[0]].Count -eq 1){
+        $stack = Get-PSCallStack | Select-Object -ExpandProperty Command
+        if (($stack | Group-Object -AsHashTable -AsString)[$stack[0]].Count -eq 1) {
             Write-Verbose "First call"
             $sDFile = @{
                 Server = $Server
@@ -626,41 +617,39 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
                 Unit = $Unit.IsPresent
             }
             $allEntry = Get-HttpDatastoreItem @sDFile
-            $entry = $allEntry | where{$_.Name -match "^$($lastQualifier)/*$"}
-            if($entry.Name -match "\/$"){
-            # It's a folder
-                if($lastQualifier -notmatch "/$"){
+            $entry = $allEntry | Where-Object { $_.Name -match "^$($lastQualifier)/*$" }
+            if ($entry.Name -match "\/$") {
+                # It's a folder
+                if ($lastQualifier -notmatch "/$") {
                     $folderQualifier += '/'
                 }
-                if($IncludeRoot.IsPresent){
+                if ($IncludeRoot.IsPresent) {
                     $entry
                 }
-            }
-            else{
-            # It's a file
+            } else {
+                # It's a file
                 $entry
             }
         }
 
-        if($folderQualifier -match "\/$" -or -not $folderQualifier){
+        if ($folderQualifier -match "\/$" -or -not $folderQualifier) {
             $ds = Get-Datastore -Name $Datastore -Server $Server -Verbose:$false
             $dc = Get-VMHost -Datastore $ds -Verbose:$false -Server $Server | Get-Datacenter -Verbose:$false -Server $Server
             $uri = "https://$($Server.Name)/folder$(if($folderQualifier){'/' + $folderQualifier})?dcPath=$($dc.Name)&dsName=$($ds.Name)"
             Write-Verbose "Looking at URI: $($uri)"
-            Try{
-                $response = Invoke-WebRequest -Uri $Uri -Method Get -Credential $Credential 
-            }
-            Catch{
+            Try {
+                $response = Invoke-WebRequest -Uri $Uri -Method Get -Credential $Credential
+            } Catch {
                 $errorMsg = "`n$(Get-Date -Format 'yyyyMMdd HH:mm:ss') HTTP $($_.Exception.Response.ProtocolVersion)" +
-                    " $($_.Exception.Response.Method) $($_.Exception.Response.StatusCode.Value__)" +
-                    " $($_.Exception.Response.StatusDescription)`n" +
-                    "$(Get-Date -Format 'yyyyMMdd HH:mm:ss') Uri $($_.Exception.Response.ResponseUri)`n "
+                " $($_.Exception.Response.Method) $($_.Exception.Response.StatusCode.Value__)" +
+                " $($_.Exception.Response.StatusDescription)`n" +
+                "$(Get-Date -Format 'yyyyMMdd HH:mm:ss') Uri $($_.Exception.Response.ResponseUri)`n "
                 Write-Error -Message $errorMsg
                 break
             }
-            foreach($entry in $response){
-                $regEx.Matches($entry.Content) | 
-                Where{$_.Success -and $_.Groups['Filename'].Value -notmatch 'Parent Datacenter|Parent Directory'} | %{
+            foreach ($entry in $response) {
+                $regEx.Matches($entry.Content) |
+                Where-Object { $_.Success -and $_.Groups['Filename'].Value -notmatch 'Parent Datacenter|Parent Directory' } | ForEach-Object {
                     Write-Verbose "`tFound $($_.Groups['Filename'].Value)"
                     $fName = $_.Groups['Filename'].Value
                     $obj = [ordered]@{
@@ -668,25 +657,23 @@ PS> Get-Datastore | Get-HttpDatastoreItem -Credential $cred -Recurse
                         FullName = "[$($ds.Name)] $($folderQualifier)$(if($folderQualifier -notmatch '/$' -and $folderQualifier){'/'})$($_.Groups['Filename'].Value)"
                         Timestamp = [DateTime]$_.Groups['Timestamp'].Value
                     }
-                    if($fName -notmatch "/$"){
+                    if ($fName -notmatch "/$") {
                         $tSize = $_.Groups['Filesize'].Value
-                        if($Unit.IsPresent){
+                        if ($Unit.IsPresent) {
                             $friendly = $tSize | Get-FriendlyUnit
-                            $obj.Add('Size',[Math]::Round($friendly.Value,0))
-                            $obj.Add('Unit',$friendly.Unit)
+                            $obj.Add('Size', [Math]::Round($friendly.Value, 0))
+                            $obj.Add('Unit', $friendly.Unit)
+                        } else {
+                            $obj.Add('Size', $tSize)
                         }
-                        else{
-                            $obj.Add('Size',$tSize)
-                        }
-                    }
-                    else{
-                        $obj.Add('Size','')
-                        if($Unit.IsPresent){
-                            $obj.Add('Unit','')
+                    } else {
+                        $obj.Add('Size', '')
+                        if ($Unit.IsPresent) {
+                            $obj.Add('Unit', '')
                         }
                     }
                     New-Object PSObject -Property $obj
-                    if($_.Groups['Filename'].Value -match "/$" -and $Recurse.IsPresent){
+                    if ($_.Groups['Filename'].Value -match "/$" -and $Recurse.IsPresent) {
                         $sDFile = @{
                             Server = $Server
                             Credential = $Credential

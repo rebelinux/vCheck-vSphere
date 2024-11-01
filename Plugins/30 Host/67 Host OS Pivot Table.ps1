@@ -6,8 +6,7 @@ $Author = "Frederic Martin"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-$HostsViews | Group-Object {$_.Summary.config.product.fullname} | `
-   Select-Object @{Name="Version";Expression={$_.Name}}, Count | Sort-Object Count -Descending
+$HostsViews | Group-Object { $_.Summary.config.product.fullname } | Select-Object @{Name = "Version"; Expression = { $_.Name } }, Count | Sort-Object Count -Descending

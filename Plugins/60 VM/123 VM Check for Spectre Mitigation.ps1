@@ -4,14 +4,14 @@
 $result = @()
 foreach ($vmobj in $FullVM | Sort-Object -Property Name) {
     # Only check VMs that are powered on
-    if($vmobj.Runtime.PowerState -eq "poweredOn") {
+    if ($vmobj.Runtime.PowerState -eq "poweredOn") {
         $vmDisplayName = $vmobj.Name
         $vmvHW = $vmobj.Config.Version
 
         $vHWPass = $false
-        if($vmvHW -eq "vmx-04" -or $vmvHW -eq "vmx-06" -or $vmvHW -eq "vmx-07" -or $vmvHW -eq "vmx-08") {
+        if ($vmvHW -eq "vmx-04" -or $vmvHW -eq "vmx-06" -or $vmvHW -eq "vmx-07" -or $vmvHW -eq "vmx-08") {
             $vHWPass = "N/A"
-        } elseif($vmvHW -eq "vmx-09" -or $vmvHW -eq "vmx-10" -or $vmvHW -eq "vmx-11" -or $vmvHW -eq "vmx-12" -or $vmvHW -eq "vmx-13") {
+        } elseif ($vmvHW -eq "vmx-09" -or $vmvHW -eq "vmx-10" -or $vmvHW -eq "vmx-11" -or $vmvHW -eq "vmx-12" -or $vmvHW -eq "vmx-13") {
             $vHWPass = $true
         }
 
@@ -21,19 +21,19 @@ foreach ($vmobj in $FullVM | Sort-Object -Property Name) {
 
         $cpuFeatures = $vmobj.Runtime.FeatureRequirement
         foreach ($cpuFeature in $cpuFeatures) {
-            if($cpuFeature.key -eq "cpuid.IBRS") {
+            if ($cpuFeature.key -eq "cpuid.IBRS") {
                 $IBRSPass = $true
-            } elseif($cpuFeature.key -eq "cpuid.IBPB") {
+            } elseif ($cpuFeature.key -eq "cpuid.IBPB") {
                 $IBPBPass = $true
-            } elseif($cpuFeature.key -eq "cpuid.STIBP") {
+            } elseif ($cpuFeature.key -eq "cpuid.STIBP") {
                 $STIBPPass = $true
             }
         }
 
         $vmAffected = $true
-        if( ($IBRSPass -eq $true -or $IBPBPass -eq $true -or $STIBPPass -eq $true) -and $vHWPass -eq $true) {
+        if ( ($IBRSPass -eq $true -or $IBPBPass -eq $true -or $STIBPPass -eq $true) -and $vHWPass -eq $true) {
             $vmAffected = $false
-        } elseif($vHWPass -eq "N/A") {
+        } elseif ($vHWPass -eq "N/A") {
             $vmAffected = $vHWPass
         }
 
@@ -45,7 +45,7 @@ foreach ($vmobj in $FullVM | Sort-Object -Property Name) {
             vHW = $vmvHW;
             Affected = $vmAffected;
         }
-        $result+=$tmp
+        $result += $tmp
     }
 }
 $Result

@@ -1,7 +1,7 @@
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-$vmhosts = Get-View -ViewType HostSystem -Property Name,Config.FeatureCapability
+$vmhosts = Get-View -ViewType HostSystem -Property Name, Config.FeatureCapability
 
 $result = @()
 foreach ($vmhost in $vmhosts | Sort-Object -Property Name) {
@@ -13,17 +13,17 @@ foreach ($vmhost in $vmhosts | Sort-Object -Property Name) {
 
     $cpuFeatures = $vmhost.Config.FeatureCapability
     foreach ($cpuFeature in $cpuFeatures) {
-        if($cpuFeature.key -eq "cpuid.IBRS" -and $cpuFeature.value -eq 1) {
+        if ($cpuFeature.key -eq "cpuid.IBRS" -and $cpuFeature.value -eq 1) {
             $IBRSPass = $true
-        } elseif($cpuFeature.key -eq "cpuid.IBPB" -and $cpuFeature.value -eq 1) {
+        } elseif ($cpuFeature.key -eq "cpuid.IBPB" -and $cpuFeature.value -eq 1) {
             $IBPBPass = $true
-        } elseif($cpuFeature.key -eq "cpuid.STIBP" -and $cpuFeature.value -eq 1) {
+        } elseif ($cpuFeature.key -eq "cpuid.STIBP" -and $cpuFeature.value -eq 1) {
             $STIBPPass = $true
         }
     }
 
     $vmhostAffected = $true
-    if($IBRSPass -or $IBPBPass -or $STIBPass) {
+    if ($IBRSPass -or $IBPBPass -or $STIBPass) {
         $vmhostAffected = $false
     }
 
@@ -34,7 +34,7 @@ foreach ($vmhost in $vmhosts | Sort-Object -Property Name) {
         STIBPresent = $STIBPPass;
         Affected = $vmhostAffected;
     }
-    $result+=$tmp
+    $result += $tmp
 }
 $Result
 

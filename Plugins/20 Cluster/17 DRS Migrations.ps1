@@ -5,7 +5,7 @@ $Author = "Alan Renouf, Jonathan Medd"
 $PluginVersion = 1.4
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # Set the number of days of DRS Migrations to report and count on
 $DRSMigrateAge = 1
 # Set the number of days of Storage DRS Migrations to report and count on
@@ -17,16 +17,16 @@ $DRSMigrateAge = Get-vCheckSetting $Title "DRSMigrateAge" $DRSMigrateAge
 $SDRSMigrateAge = Get-vCheckSetting $Title "SDRSMigrateAge" $SDRSMigrateAge
 
 if (-not $DRSMigrations) {
-   $DRSMigrations = Get-VIEventPlus -Start $Date.AddDays(-$DRSMigrateAge) -EventType 'DrsVmMigratedEvent' | Select-Object CreatedTime, FullFormattedMessage
+    $DRSMigrations = Get-VIEventPlus -Start $Date.AddDays(-$DRSMigrateAge) -EventType 'DrsVmMigratedEvent' | Select-Object CreatedTime, FullFormattedMessage
 }
 if ($VIVersion -ge 5 -and -not $SDRSMigrations) {
-   $StorageDRSQuery = Get-VIEventPlus -Start $Date.AddDays(-$SDRSMigrateAge) -EventType 'com.vmware.vc.sdrs.StorageDrsStoragePlacementEvent'
-   $SDRSMigrations = ForEach ($Event in $StorageDRSQuery) {
-      New-Object -TypeName PSObject -Property @{
-         'CreatedTime' = $Event.CreatedTime
-         'FullFormattedMessage' = "SDRS migrated $($Event.Arguments.Value[0]) to $($Event.Arguments.Value[2]) in datastore cluster $($Event.ObjectName)."
-      }
-   }
+    $StorageDRSQuery = Get-VIEventPlus -Start $Date.AddDays(-$SDRSMigrateAge) -EventType 'com.vmware.vc.sdrs.StorageDrsStoragePlacementEvent'
+    $SDRSMigrations = ForEach ($Event in $StorageDRSQuery) {
+        New-Object -TypeName PSObject -Property @{
+            'CreatedTime' = $Event.CreatedTime
+            'FullFormattedMessage' = "SDRS migrated $($Event.Arguments.Value[0]) to $($Event.Arguments.Value[2]) in datastore cluster $($Event.ObjectName)."
+        }
+    }
 }
 
 $DRSMigrations
@@ -34,8 +34,7 @@ $SDRSMigrations
 
 if ($VIVersion -ge 5) {
     $HeaderText = "DRS Migrations (Last $DRSMigrateAge Day(s)) : $(@($DRSMigrations).count); SDRS Migrations (Last $SDRSMigrateAge Day(s)) : $(@($SDRSMigrations).count)"
-}
-else {
+} else {
     $HeaderText = "DRS Migrations (Last $DRSMigrateAge Day(s)) : $(@($DRSMigrations).count)"
 }
 

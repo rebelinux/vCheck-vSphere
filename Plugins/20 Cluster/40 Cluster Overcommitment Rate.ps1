@@ -1,4 +1,4 @@
-﻿# Start of Settings   
+﻿# Start of Settings
 # End of Settings
 
 $Title = "Cluster Overcommitment rate"
@@ -9,14 +9,14 @@ $PluginVersion = "1.0"
 $PluginCategory = "vSphere"
 $Display = "Table"
 
-foreach ($cluv in ($clusviews | Where-Object {$_.Summary.NumHosts -gt 0 } | Sort-Object Name)) {
-    $cluvmlist = $VM | Where-Object { $cluv.Host -contains $_.VMHost.Id  }
+foreach ($cluv in ($clusviews | Where-Object { $_.Summary.NumHosts -gt 0 } | Sort-Object Name)) {
+    $cluvmlist = $VM | Where-Object { $cluv.Host -contains $_.VMHost.Id }
 
     $totalCpu = $cluv.Summary.NumCpuThreads
-    $totalMem = $cluv.Summary.EffectiveMemory/1024
+    $totalMem = $cluv.Summary.EffectiveMemory / 1024
 
-    $committedCpu = ($cluvmlist|Measure-Object -Sum -Property NumCpu).sum
-    $committedMem = ($cluvmlist|Measure-Object -Sum -Property MemoryGB).sum
+    $committedCpu = ($cluvmlist | Measure-Object -Sum -Property NumCpu).sum
+    $committedMem = ($cluvmlist | Measure-Object -Sum -Property MemoryGB).sum
 
     $clusterInfo = "" | Select-Object Name, TotalCPU, TotalMem, CommittedCPU, CommittedMem, OverCommitmentRateCpu, OverCommitmentRateMem
     $clusterInfo.Name = $cluv.Name

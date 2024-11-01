@@ -6,7 +6,7 @@ $Author = "Jonathan Medd"
 $PluginVersion = 1.1
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # End of Settings
 
-$FullVM | Where-Object {$_.config.cpuallocation.limit -ne "-1" -or $_.config.memoryallocation.limit -ne "-1"} | Select-Object Name, @{Name="CpuLimitMhz";E={$_.config.cpuallocation.limit}}, @{Name="MemLimitMB";E={$_.config.memoryallocation.limit}}
+$FullVM | Where-Object { $_.config.cpuallocation.limit -ne "-1" -or $_.config.memoryallocation.limit -ne "-1" } | Select-Object Name, @{Name = "CpuLimitMhz"; E = { $_.config.cpuallocation.limit } }, @{Name = "MemLimitMB"; E = { $_.config.memoryallocation.limit } }

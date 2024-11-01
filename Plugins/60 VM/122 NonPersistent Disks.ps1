@@ -15,15 +15,15 @@ $NPExcludeVM = "^DV-|^MLB-"
 $NPExcludeVM = Get-vCheckSetting $Title "NPExcludeVM" $NPExcludeVM
 
 # NonPersistent Disks
-$diskModes = [VMware.Vim.VirtualDiskMode]::independent_nonpersistent,[VMware.Vim.VirtualDiskMode]::nonpersistent
-ForEach($npvm in $FullVM | Where-Object {$_.Name -notmatch $NPExcludeVM}){
-   $npvm.Config.Hardware.Device |
-   Where-Object {$_ -is [VMware.Vim.VirtualDisk] -and $diskModes -contains $_.Backing.DiskMode} |
-   Select-Object @{N="VM";E={$npvm.Name}},
-      @{N="Disk";E={$_.DeviceInfo.Label}},
-      @{N="Mode";E={$_.Backing.DiskMode}},
-      @{N="CapacityGB";E={$_.capacityInKB/1MB}},
-      @{N="Filename";E={$_.Backing.FileName}}
+$diskModes = [VMware.Vim.VirtualDiskMode]::independent_nonpersistent, [VMware.Vim.VirtualDiskMode]::nonpersistent
+ForEach ($npvm in $FullVM | Where-Object { $_.Name -notmatch $NPExcludeVM }) {
+    $npvm.Config.Hardware.Device |
+    Where-Object { $_ -is [VMware.Vim.VirtualDisk] -and $diskModes -contains $_.Backing.DiskMode } |
+    Select-Object @{N = "VM"; E = { $npvm.Name } },
+    @{N = "Disk"; E = { $_.DeviceInfo.Label } },
+    @{N = "Mode"; E = { $_.Backing.DiskMode } },
+    @{N = "CapacityGB"; E = { $_.capacityInKB / 1MB } },
+    @{N = "Filename"; E = { $_.Backing.FileName } }
 }
 
 # Changelog

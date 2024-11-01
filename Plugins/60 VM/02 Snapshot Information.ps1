@@ -1,4 +1,4 @@
-# Start of Settings 
+# Start of Settings
 # Set the warning threshold for snapshots in days old
 $SnapshotAge = 14
 # Set snapshot name exception (regex)
@@ -18,7 +18,7 @@ foreach ($Snapshot in ($VM | Get-Snapshot | Where-Object { $_.Created -lt (Get-D
     $SnapshotEvents = Get-VIEventPlus -Entity $Snapshot.VM -EventType "TaskEvent" -Start $Snapshot.Created.AddMinutes(-1) -Finish $Snapshot.Created.AddMinutes(1)
     $SnapshotEvent = $SnapshotEvents | Where-Object { $_.Info.DescriptionId -eq "VirtualMachine.createSnapshot" } | Select-Object -First 1
 
-    if ($SnapshotEvent -eq $null) {
+    if ($null -eq $SnapshotEvent) {
         $SnapshotCreator = "Unknown"
     } elseif ($SnapshotEvent.UserName -match $ExcludeCreator) {
         # This is the earliest point where I can neglect snapshots from certain creators

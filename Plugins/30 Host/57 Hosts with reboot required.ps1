@@ -10,4 +10,4 @@ $PluginCategory = "vSphere"
 # Start of Settings
 # End of Settings
 
-$VMH | Where-Object {$_.ExtensionData.Summary.RebootRequired} | Select-Object -Property Name, State
+$VMH | Where-Object { $_.ExtensionData.Summary.RebootRequired } | Select-Object -Property Name, State

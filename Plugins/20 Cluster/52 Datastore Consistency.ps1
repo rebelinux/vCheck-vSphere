@@ -14,12 +14,10 @@ $DSDoNotInclude = "local*|datastore*"
 # Update settings where there is an override
 $DSDoNotInclude = Get-vCheckSetting $Title "DSDoNotInclude" $DSDoNotInclude
 
-if ($Clusters -ne $null) 
-{
-   ForEach ($Cluster in ($Clusters)) 
-   {
-      $Cluster.ExtensionData.Host | Foreach-Object { $h = $_; $Datastores | Where-Object {$_.ExtensionData.Host.key -contains $h}} | 
-         Where-Object {$_.Name -notmatch $DSDoNotInclude } | Group-Object Name | Where-Object { $_.Count -ne $cluster.ExtensionData.Host.count } | 
-         Select-Object @{Name="Name"; Expression={$_.Group.name}}, @{Name="Cluster";Expression={$Cluster.Name}}
-   }
+if ($null -ne $Clusters) {
+    ForEach ($Cluster in ($Clusters)) {
+        $Cluster.ExtensionData.Host | ForEach-Object { $h = $_; $Datastores | Where-Object { $_.ExtensionData.Host.key -contains $h } } |
+        Where-Object { $_.Name -notmatch $DSDoNotInclude } | Group-Object Name | Where-Object { $_.Count -ne $cluster.ExtensionData.Host.count } |
+        Select-Object @{Name = "Name"; Expression = { $_.Group.name } }, @{Name = "Cluster"; Expression = { $Cluster.Name } }
+    }
 }

@@ -1,5 +1,5 @@
 $Title = "VSAN Configuration Maximum Total Magnetic Disks In All Disk Groups Per Host Report"
-$Header =  "VSAN Config Max -  Total Magnetic Disks In All Disk Groups Per Host"
+$Header = "VSAN Config Max -  Total Magnetic Disks In All Disk Groups Per Host"
 $Display = "Table"
 $Author = "William Lam"
 $PluginVersion = 1.2
@@ -17,24 +17,25 @@ $vsanWarningThreshold = Get-vCheckSetting $Title "vsanWarningThreshold" $vsanWar
 $vsanTotalMDMaximum = 35
 
 foreach ($cluster in $clusviews) {
-   if($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
-      foreach ($vmhost in $cluster.Host |  Sort-Object -Property Name) {
-         $totalMDs = 0
-         $vmhostView = Get-View $vmhost -Property Name,ConfigManager.VsanSystem
-         $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
-         foreach ($diskMapping in $vsanSys.Config.StorageInfo.DiskMapping) {
-            $mds = ($diskMapping.NonSsd | Measure-Object).count
-            $totalMDs += $mds
-         }
-         $checkValue = [int]($totalMDs/$vsanTotalMDMaximum * 100)
+    if ($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
+        foreach ($vmhost in $cluster.Host |  Sort-Object -Property Name) {
+            $totalMDs = 0
+            $vmhostView = Get-View $vmhost -Property Name, ConfigManager.VsanSystem
+            $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
+            foreach ($diskMapping in $vsanSys.Config.StorageInfo.DiskMapping) {
+                $mds = ($diskMapping.NonSsd | Measure-Object).count
+                $totalMDs += $mds
+            }
+            $checkValue = [int]($totalMDs / $vsanTotalMDMaximum * 100)
 
-         if($checkValue -gt $vsanWarningThreshold) {
-            New-Object -TypeName PSObject -Property @{
-               "VMhost" = $vmhostView.Name
-               "TotalMDCount" = $mds }
-         }
-      }
-   }
+            if ($checkValue -gt $vsanWarningThreshold) {
+                New-Object -TypeName PSObject -Property @{
+                    "VMhost" = $vmhostView.Name
+                    "TotalMDCount" = $mds
+                }
+            }
+        }
+    }
 }
 
 $Comments = ("VSAN hosts approaching {0}% limit of {1} total magnetic disks in all Disk Groups per host" -f $vsanWarningThreshold, $vsanTotalMDMaximum)

@@ -9,4 +9,4 @@ $PluginCategory = "vSphere"
 # Start of Settings
 # End of Settings
 
-$VMH | where-object {($_.ConnectionState -match "Connected|Maintenance") -and ($_.LicenseKey -eq "00000-00000-00000-00000-00000")} | Select Name, LicenseKey
+$VMH | Where-Object { ($_.ConnectionState -match "^Connected|Maintenance") -and ($_.LicenseKey -eq "00000-00000-00000-00000-00000") } | Select-Object Name, LicenseKey

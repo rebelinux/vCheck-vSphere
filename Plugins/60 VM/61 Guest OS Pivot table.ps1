@@ -12,30 +12,30 @@ $PluginCategory = "vSphere"
 # - VM Guest OS Pivot Table -
 
 $VMOSversions = @{ }
-$FullVM | % {
-  # Prefer to use GuestFullName but try AltGuestName first
-  if ($_.Config.AlternateGuestName) { $VMOSversion = $_.Config.AlternateGuestName }
-  if ($_.Guest.GuestFullName) { $VMOSversion = $_.Guest.GuestFullName }
-  # Seeing if any of these options worked
-  if (!($VMOSversion)) {
-    # No 'version' so checking for tools
-    if (!($_.Guest.ToolsStatus.Value__ )) {
-      $VMOSversion = "Unknown - no VMTools"
-    } else {
-      # Still no 'version', must be old tools
-      $toolsversion = $_.Config.Tools.ToolsVersion
-      $VMOSversion = "Unknown - tools version $toolsversion"
+$FullVM | ForEach-Object {
+    # Prefer to use GuestFullName but try AltGuestName first
+    if ($_.Config.AlternateGuestName) { $VMOSversion = $_.Config.AlternateGuestName }
+    if ($_.Guest.GuestFullName) { $VMOSversion = $_.Guest.GuestFullName }
+    # Seeing if any of these options worked
+    if (!($VMOSversion)) {
+        # No 'version' so checking for tools
+        if (!($_.Guest.ToolsStatus.Value__ )) {
+            $VMOSversion = "Unknown - no VMTools"
+        } else {
+            # Still no 'version', must be old tools
+            $toolsversion = $_.Config.Tools.ToolsVersion
+            $VMOSversion = "Unknown - tools version $toolsversion"
+        }
     }
-  }
-  $VMOSversions.$VMOSversion++
+    $VMOSversions.$VMOSversion++
 }
 
 $myCol = @()
 foreach ( $gosname in $VMOSversions.Keys | sort) {
-  $MyDetails = "" | Select-Object OS, Count
-  $MyDetails.OS = $gosname
-  $MyDetails.Count = $VMOSversions.$gosname
-  $myCol += $MyDetails
+    $MyDetails = "" | Select-Object OS, Count
+    $MyDetails.OS = $gosname
+    $MyDetails.Count = $VMOSversions.$gosname
+    $myCol += $MyDetails
 }
 
 $myCol | Sort-Object Count -desc

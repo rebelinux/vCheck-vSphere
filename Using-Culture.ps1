@@ -16,7 +16,8 @@
 
   Use a language code from https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx
 
-  Examples:    # Run vCheck with the French language code
+  Examples:
+    # Run vCheck with the French language code
     Using-Culture -culture fr-FR -script {.\vCheck.ps1}
 
     # Run vCheck with the Spanish language code
@@ -30,18 +31,18 @@
 
 function Using-Culture ([System.Globalization.CultureInfo]$culture =(throw "USAGE: Using-Culture -Culture culture -Script {scriptblock}"),
                         [ScriptBlock]$script=(throw "USAGE: Using-Culture -Culture culture -Script {scriptblock}"))
-{    
+{
     $OldCulture = [System.Threading.Thread]::CurrentThread.CurrentCulture
     $OldUICulture = [System.Threading.Thread]::CurrentThread.CurrentUICulture
     try {
         [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
-        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture        
-        Invoke-Command $script    
-    }    
-    finally {        
-        [System.Threading.Thread]::CurrentThread.CurrentCulture = $OldCulture        
-        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $OldUICulture    
-    }    
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+        Invoke-Command $script
+    }
+    finally {
+        [System.Threading.Thread]::CurrentThread.CurrentCulture = $OldCulture
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $OldUICulture
+    }
 }
 
 Using-Culture -culture en-US -script {.\vCheck.ps1}

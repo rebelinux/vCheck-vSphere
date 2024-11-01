@@ -10,9 +10,9 @@ $PluginCategory = "vSphere"
 # End of Settings
 
 # Multi-writer parameter
-ForEach ($mwvm in $FullVM){
-    $mwvm.Config.ExtraConfig | Where-Object {$_.Key -like "scsi*sharing"} |
-    Select-Object @{N="VM";E={$mwvm.Name}},Key,Value
+ForEach ($mwvm in $FullVM) {
+    $mwvm.Config.ExtraConfig | Where-Object { $_.Key -like "scsi*sharing" } |
+    Select-Object @{N = "VM"; E = { $mwvm.Name } }, Key, Value
 }
 
 # Changelog

@@ -25,13 +25,13 @@ $ClusterHAAdmissionControlShouldBeEnabled = Get-vCheckSetting $Title "ClusterHAA
 
 # Update settings if there is a csv file with a name matching the plugin ps1 file name.
 if (Test-Path -Path (($MyInvocation).MyCommand.Source).Replace("ps1", "csv")) {
-	Import-Csv (($MyInvocation).MyCommand.Source).Replace("ps1", "csv") | ForEach-Object { Set-Variable -Name $_.Name -Value $_.Value }
+    Import-Csv (($MyInvocation).MyCommand.Source).Replace("ps1", "csv") | ForEach-Object { Set-Variable -Name $_.Name -Value $_.Value }
 }
 
 # Setup plugin-specific language table
 $pLang = DATA {
-   ConvertFrom-StringData @' 
-      HADisabled = HA config not compliant on this cluster. 
+    ConvertFrom-StringData @'
+      HADisabled = HA config not compliant on this cluster.
       HAMonDisabled = Host Monitoring config not compliant.
       HAACDisabled = HA Admission Control config not compliant.
 '@
@@ -41,16 +41,16 @@ Import-LocalizedData -BaseDirectory ($ScriptPath + "\Lang") -BindingVariable pLa
 
 # Clusters with HA disabled
 $HAIssues = @()
-$HAIssues += $Clusters | Where-Object {$_.Name -notmatch $ClustersDoNotInclude -and $_.HAEnabled -ne $CLusterHAShouldBeEnabled } |
-  Select-Object @{Name="Cluster";Expression={$_.Name}},@{Name="Configuration Issue";Expression={$pLang.HADisabled}}
+$HAIssues += $Clusters | Where-Object { $_.Name -notmatch $ClustersDoNotInclude -and $_.HAEnabled -ne $CLusterHAShouldBeEnabled } |
+Select-Object @{Name = "Cluster"; Expression = { $_.Name } }, @{Name = "Configuration Issue"; Expression = { $pLang.HADisabled } }
 
-# Clusters with host monitoring disabled 
-$HAIssues += $clusviews | Where-Object {$_.Name -notmatch $ClustersDoNotInclude -and ( $_.Configuration.DasConfig.HostMonitoring -eq "enabled" ) -ne $ClusterHAHostMonitoringShouldBeEnabled } |
-   Select-Object @{Name="Cluster";Expression={$_.Name}}, @{N="Configuration Issue";E={$pLang.HAMonDisabled}}
+# Clusters with host monitoring disabled
+$HAIssues += $clusviews | Where-Object { $_.Name -notmatch $ClustersDoNotInclude -and ( $_.Configuration.DasConfig.HostMonitoring -eq "enabled" ) -ne $ClusterHAHostMonitoringShouldBeEnabled } |
+Select-Object @{Name = "Cluster"; Expression = { $_.Name } }, @{N = "Configuration Issue"; E = { $pLang.HAMonDisabled } }
 
 # Clusters with admission Control Disabled
-$HAIssues += $Clusters | Where-Object {$_.Name -notmatch $ClustersDoNotInclude -and $_.HAAdmissionControlEnabled -ne $ClusterHAAdmissionControlShouldBeEnabled } |
-  Select-Object @{Name="Cluster";Expression={$_.Name}},@{Name="Configuration Issue";Expression={$pLang.HAACDisabled}}
+$HAIssues += $Clusters | Where-Object { $_.Name -notmatch $ClustersDoNotInclude -and $_.HAAdmissionControlEnabled -ne $ClusterHAAdmissionControlShouldBeEnabled } |
+Select-Object @{Name = "Cluster"; Expression = { $_.Name } }, @{Name = "Configuration Issue"; Expression = { $pLang.HAACDisabled } }
 
 # Sort and return
 $HAIssues | Sort-Object Cluster

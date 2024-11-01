@@ -6,22 +6,21 @@ $Author = "Mads Fog Albrechtslund"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # End of Settings
 
 $OutputPhantomSnapshots = @()
 
-ForEach ($theVM in $VM){
-   ForEach ($theVMdisk in ($theVM | Get-HardDisk | Where-Object {$_.Filename -match "-\d{6}.vmdk"})){
-      # Find VM's which don't have normal Snapshots registered 
-      if (!(Get-Snapshot $theVM))
-      {
-         New-Object -TypeName PSObject -Property @{
-            "VM Name" = $theVM.name
-            "VMDK Path" = $theVMdisk.Filename
-         }
-      }
-   }
+ForEach ($theVM in $VM) {
+    ForEach ($theVMdisk in ($theVM | Get-HardDisk | Where-Object { $_.Filename -match "-\d{6}.vmdk" })) {
+        # Find VM's which don't have normal Snapshots registered
+        if (!(Get-Snapshot $theVM)) {
+            New-Object -TypeName PSObject -Property @{
+                "VM Name" = $theVM.name
+                "VMDK Path" = $theVMdisk.Filename
+            }
+        }
+    }
 }
 
 # Change Log

@@ -17,17 +17,17 @@
 
 ![Alt text](http://www.virtu-al.net/wp-content/uploads/2017/10/vCheck_Clarity.jpg "vCheck Sample")
 
-|Navigation|
-|-----------------|
-|[About](#About)|
-|[Features](#Features)|
-|[Installing](#Installing)|
-|[Enhancements](#Enhancements)|
-|[Contributing](#Contributing)|
-|[Plugins](#Plugins)|
-|[Styles](#Styles)|
-|[Jobs & Settings](#JobsSettings)|
-|[More Info](#More)|
+| Navigation                       |
+| -------------------------------- |
+| [About](#About)                  |
+| [Features](#Features)            |
+| [Installing](#Installing)        |
+| [Enhancements](#Enhancements)    |
+| [Contributing](#Contributing)    |
+| [Plugins](#Plugins)              |
+| [Styles](#Styles)                |
+| [Jobs & Settings](#JobsSettings) |
+| [More Info](#More)               |
 
 <a name="About">
 
@@ -103,11 +103,11 @@ The following items are included as part of the vCheck vSphere download, they ar
 - Much, Much more.......
 
 <a name="Installing">
-  
+
 # Installing
 [*Back to top*](#Title)
 
-Copy  the vCheck files to the desired location. Run the script 'vCheck.ps1' -Config to do initial configuration of the script. 
+Copy  the vCheck files to the desired location. Run the script 'vCheck.ps1' -Config to do initial configuration of the script.
 <!--Copy the vCheck files to the desired location. Run the script `vCheckUtils.ps1` and call the function `Schedule-vCheck`. Answer the prompts to configure the scheduled job.-->
 
 <a name="Enhancements">
@@ -145,18 +145,18 @@ Your plugin must contain a section for settings. This may be blank, or may conta
 
 No Settings
   ```
-  # Start of Settings   
+  # Start of Settings
   # End of Settings
   ```
 
 Settings to define two variables
   ```
-  # Start of Settings   
-  # Comment - presented as part of the setup wizard   
-  $variable = "value"     
-  # Second variable     
-  $variable2 = "value2"     
-  ...     
+  # Start of Settings
+  # Comment - presented as part of the setup wizard
+  $variable = "value"
+  # Second variable
+  $variable2 = "value2"
+  ...
   # End of Settings
   ```
 

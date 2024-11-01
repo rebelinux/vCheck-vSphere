@@ -1,9 +1,9 @@
 # Start of Settings
 # End of Settings
- 
+
 # Everything in this script will run at the end of vCheck
 If ($VIConnection) {
-  $VIConnection | Disconnect-VIServer -Confirm:$false | Out-Null
+    $VIConnection | Disconnect-VIServer -Confirm:$false | Out-Null
 }
 
 Write-Output ""

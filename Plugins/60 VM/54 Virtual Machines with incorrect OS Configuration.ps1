@@ -14,9 +14,9 @@ $VMTDoNotInclude = "VM1_*|VM2_*"
 # Update settings where there is an override
 $VMTDoNotInclude = Get-vCheckSetting $Title "VMTDoNotInclude" $VMTDoNotInclude
 
-$FullVM | Where-Object {$_.Name -notmatch $VMTDoNotInclude} |`
-   Where-Object {$_.Guest.GuestId -and $_.Guest.GuestId -ne $_.Config.GuestId} | `
-   Select-Object -Property Name,@{N="GuestId";E={$_.Guest.GuestId}},
-      @{N="Installed Guest OS";E={$_.Guest.GuestFullName}},
-      @{N="Configured GuestId";E={$_.Config.GuestId}},
-      @{N="Configured Guest OS";E={$_.Config.GuestFullName}}
+$FullVM | Where-Object { $_.Name -notmatch $VMTDoNotInclude } |`
+    Where-Object { $_.Guest.GuestId -and $_.Guest.GuestId -ne $_.Config.GuestId } | `
+    Select-Object -Property Name, @{N = "GuestId"; E = { $_.Guest.GuestId } },
+@{N = "Installed Guest OS"; E = { $_.Guest.GuestFullName } },
+@{N = "Configured GuestId"; E = { $_.Config.GuestId } },
+@{N = "Configured Guest OS"; E = { $_.Config.GuestFullName } }

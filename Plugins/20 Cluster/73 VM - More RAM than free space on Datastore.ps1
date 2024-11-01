@@ -6,9 +6,7 @@ $Author = "Olivier TABUT, Bob Cote"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-$VM | Where-Object {$_.PowerState -eq "PoweredOn"} | 
-   Select-Object Name, MemoryMB, @{"Name"="FreeSpaceMB";e={($Datastores | Where-Object {$_.Name -eq (($Machine.ExtensionData.Config.Files.VmPathName).Split('[')[1]).Split(']')[0]}).FreeSpaceMB}} | 
-   Where-Object {($_.FreeSpaceMB -ne $null) -and ($_.MemoryMB -gt $_.FreeSpaceMB)} | Sort-Object Name
+$VM | Where-Object { $_.PowerState -eq "PoweredOn" } | Select-Object Name, MemoryMB, @{"Name" = "FreeSpaceMB"; e = { ($Datastores | Where-Object { $_.Name -eq (($Machine.ExtensionData.Config.Files.VmPathName).Split('[')[1]).Split(']')[0] }).FreeSpaceMB } } | Where-Object { ($_.FreeSpaceMB -ne $null) -and ($_.MemoryMB -gt $_.FreeSpaceMB) } | Sort-Object Name

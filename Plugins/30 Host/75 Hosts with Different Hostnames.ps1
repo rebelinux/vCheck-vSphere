@@ -9,4 +9,4 @@ $PluginCategory = "vSphere"
 # Start of Settings
 # End of Settings
 
-$VMH | Where-Object {$_.Name.Split('.')[0] -ne $_.NetworkInfo.HostName} | Select-Object -Property Name,@{Name="HostName";Expression={$_.NetworkInfo.HostName}} | Sort-Object -Property Name
+$VMH | Where-Object { $_.Name.Split('.')[0] -ne $_.NetworkInfo.HostName } | Select-Object -Property Name, @{Name = "HostName"; Expression = { $_.NetworkInfo.HostName } } | Sort-Object -Property Name

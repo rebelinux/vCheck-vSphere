@@ -6,22 +6,22 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
 foreach ($clusview in $clusviews) {
-   if ($clusview.ConfigurationEx.VmSwapPlacement -eq "hostLocal") {
-      $CluNodes = $VMH | Where-Object {$clusview.Host -contains $_.Id }
-      foreach ($CluNode in $CluNodes) {
-         if ($CluNode.VMSwapfileDatastore.Name -eq $null){
-            if ($CluNode.ExtensionData.Config.LocalSwapDatastore.Value) {
-               New-Object PSObject -Property @{
-                  Cluster = $clusview.name
-                  Host = $CluNode.name
-                  Message = "Swap file location NOT SET"
-               }
+    if ($clusview.ConfigurationEx.VmSwapPlacement -eq "hostLocal") {
+        $CluNodes = $VMH | Where-Object { $clusview.Host -contains $_.Id }
+        foreach ($CluNode in $CluNodes) {
+            if ($null -eq $CluNode.VMSwapfileDatastore.Name) {
+                if ($CluNode.ExtensionData.Config.LocalSwapDatastore.Value) {
+                    New-Object PSObject -Property @{
+                        Cluster = $clusview.name
+                        Host = $CluNode.name
+                        Message = "Swap file location NOT SET"
+                    }
+                }
             }
-         }
-      }
-   }
+        }
+    }
 }

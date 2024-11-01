@@ -19,22 +19,22 @@ $ADAdminGroup = "ESX Admins"
 $ADFailedHosts = @()
 $ADOKHosts = @()
 
-ForEach ($ADHost in $VMH | Where-Object {$_.ConnectionState -match "Connected|Maintenance"}) {
-	# Get authetication settings
-	$myADAuth = $ADHost | Get-VMHostAuthentication
-	# Get Admin Group settings
-	$myADGroup = ($ADHost | Get-AdvancedSetting -Name "Config.HostAgent.plugins.hostsvc.esxAdminsGroup").Value
-	# Build array item
-	$myADHost = $ADHost | Select-Object Name,@{Name='Domain';Expression = {$myADAuth.Domain}},@{Name='MembershipStatus';Expression = {$myADAuth.DomainMembershipStatus}},@{Name='AdminGroup';Expression = {$myADGroup}}
-	# Iterate tests, a single failure constitues a failure for the unit
-	If ($myADAuth.Domain -ne $ADDomainName) {$ADFailedHosts += $myADHost } #Configured domain does not equal expected
-	ElseIf ($myADGroup -ne $ADAdminGroup) {$ADFailedHosts += $myADHost} #Configured Admin Group does not equal expected
-	ElseIf ($myADAuth.DomainMembershipStatus -ne "OK") {$ADFailedHosts += $myADHost} #Domain Memebership is in doubt
-	Else {$ADOKHosts += $myADHost} #Configuration passed all tests
+ForEach ($ADHost in $VMH | Where-Object { $_.ConnectionState -match "Connected|Maintenance" }) {
+    # Get authetication settings
+    $myADAuth = $ADHost | Get-VMHostAuthentication
+    # Get Admin Group settings
+    $myADGroup = ($ADHost | Get-AdvancedSetting -Name "Config.HostAgent.plugins.hostsvc.esxAdminsGroup").Value
+    # Build array item
+    $myADHost = $ADHost | Select-Object Name, @{Name = 'Domain'; Expression = { $myADAuth.Domain } }, @{Name = 'MembershipStatus'; Expression = { $myADAuth.DomainMembershipStatus } }, @{Name = 'AdminGroup'; Expression = { $myADGroup } }
+    # Iterate tests, a single failure constitues a failure for the unit
+    If ($myADAuth.Domain -ne $ADDomainName) { $ADFailedHosts += $myADHost } #Configured domain does not equal expected
+    ElseIf ($myADGroup -ne $ADAdminGroup) { $ADFailedHosts += $myADHost } #Configured Admin Group does not equal expected
+    ElseIf ($myADAuth.DomainMembershipStatus -ne "OK") { $ADFailedHosts += $myADHost } #Domain Memebership is in doubt
+    Else { $ADOKHosts += $myADHost } #Configuration passed all tests
 }
 
 # If desired, add OK hosts to display after failed hosts
-If ($ADDisplayOK) {$ADFailedHosts += $ADOKHosts}
+If ($ADDisplayOK) { $ADFailedHosts += $ADOKHosts }
 
 # Provide output
 $ADFailedHosts

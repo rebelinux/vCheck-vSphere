@@ -27,22 +27,18 @@ $IgnoreNets = Get-vCheckSetting $Title "IgnoreNets" $IgnoreNets
 $VersionOK = $false
 
 # Obtain the Revision number of the VMWare.PowerCLI modules
-$Revision=(Get-Module VMWare.PowerCLI -listavailable).Version.Revision
+$Revision = (Get-Module VMWare.PowerCLI -ListAvailable).Version.Revision
 
 if ($Revision) {
     if ($Revision -ge 1012425) {
         $VersionOK = $true
         if ($Revision -ge 2548067) {
             #PowerCLI 6+
-            if (!(Get-Module -Name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue))
-            {
+            if (!(Get-Module -Name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
                 Import-Module VMware.VimAutomation.Vds
-            }
-            else
-            {
+            } else {
                 # Add required Snap-In
-                if (!(Get-PSSnapin -name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue))
-                {
+                if (!(Get-PSSnapin -name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
                     Add-PSSnapin VMware.VimAutomation.Vds
                 }
             }
@@ -50,19 +46,15 @@ if ($Revision) {
     }
 }
 
-if ($VersionOK)
-{
+if ($VersionOK) {
     [array] $results = $null
 
     Get-VirtualSwitch | Where-Object { $_.Name -notmatch $IgnoreNets } | ForEach-Object {
         $Output = "" | Select-Object Host, Type, vSwitch, Portgroup, AllowPromiscuous, ForgedTransmits, MacChanges
-        if ($_.ExtensionData.Summary -ne $null)
-        {
+        if ($_.ExtensionData.Summary -ne $null) {
             $Output.Type = "vDS"
             $Output.Host = "*"
-        }
-        else
-        {
+        } else {
             $Output.Type = "vSS"
             $Output.Host = $_.VMHost
         }
@@ -74,15 +66,12 @@ if ($VersionOK)
         $results += $Output
     }
 
-    Get-VDPortGroup | Where-Object { $_.Name -notmatch $IgnoreNets } | ForEach-Object {
+    Get-VDPortgroup | Where-Object { $_.Name -notmatch $IgnoreNets } | ForEach-Object {
         $Output = "" | Select-Object Host, Type, vSwitch, Portgroup, AllowPromiscuous, ForgedTransmits, MacChanges
         $Output.Host = "*"
-        if ($_.ExtensionData.Config.Uplink -eq $true)
-        {
+        if ($_.ExtensionData.Config.Uplink -eq $true) {
             $Output.Type = "vDS Uplink Port Group"
-        }
-        else
-        {
+        } else {
             $Output.Type = "vDS Port Group"
         }
         $Output.vSwitch = $_.VDSwitch
@@ -109,9 +98,7 @@ if ($VersionOK)
     }
 
     if ($results.Host) { $results | Where-Object { ($_.AllowPromiscuous -and $AllowPromiscuousPolicy) -or ($_.ForgedTransmits -and $ForgedTransmitsPolicy -and $_.Type -ne "vDS Uplink Port Group") -or ($_.MacChanges -and $MacChangesPolicy) } | Sort-Object vSwitch, PortGroup }
-}
-else
-{
+} else {
     Write-Warning "PowerCLi version installed is lower than 5.1 Release 2"
     New-Object PSObject -Property @{"Message" = "PowerCLi version installed is lower than 5.1 Release 2, please update to use this plugin" }
 }

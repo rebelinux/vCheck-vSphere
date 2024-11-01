@@ -6,17 +6,17 @@ $Author = "Alan Renouf, Frederic Martin"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-foreach ($esxhost in ($HostsViews | Where-Object {$_.Runtime.ConnectionState -match "Connected|Maintenance"})) {
-   $esxhost | Foreach-Object {$_.config.storageDevice.multipathInfo.lun} | Foreach-Object {$_.path} | Where-Object {$_.State -eq "Dead"} | Foreach-Object {
-      New-Object PSObject -Property @{
-         VMHost = $esxhost.Name
-         Lunpath = $_.Name
-         State = $_.state
-      }
-   }
+foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "Connected|Maintenance" })) {
+    $esxhost | ForEach-Object { $_.config.storageDevice.multipathInfo.lun } | ForEach-Object { $_.path } | Where-Object { $_.State -eq "Dead" } | ForEach-Object {
+        New-Object PSObject -Property @{
+            VMHost = $esxhost.Name
+            Lunpath = $_.Name
+            State = $_.state
+        }
+    }
 }
 
 # Changelog

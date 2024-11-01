@@ -6,11 +6,11 @@ $Author = "Frederic Martin"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
 if ($VIVersion -ge 5) {
-   $StorageViews | Where-Object {$_.Summary.MaintenanceMode -match "inMaintenance"} | Select-Object Name, @{N="MaintenanceMode";E={$_.Summary.MaintenanceMode}}
+    $StorageViews | Where-Object { $_.Summary.MaintenanceMode -match "inMaintenance" } | Select-Object Name, @{N = "MaintenanceMode"; E = { $_.Summary.MaintenanceMode } }
 }
 
 # Change Log

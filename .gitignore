@@ -2,3 +2,5 @@
 Windowscreds.xml
 # Ignore vCentercreds.xml
 vCentercreds.xml
+# Ignore launch.json
+launch.json

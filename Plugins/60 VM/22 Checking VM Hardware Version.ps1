@@ -6,7 +6,7 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.3
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # Hardware Version to check for at least
 $HWVers = 8
 # Adding filter for dsvas, vShield appliances or any other vms that will remain on a lower HW version
@@ -17,7 +17,7 @@ $vmIgnore = "vShield*|dsva*"
 $HWVers = Get-vCheckSetting $Title "HWVers" $HWVers
 $vmIgnore = Get-vCheckSetting $Title "vmIgnore" $vmIgnore
 
-$VM | Where-Object {$_.Name -notmatch $vmIgnore -and [INT]($_.HWVersion)-lt $HWVers} | Select-Object Name, HWVersion
+$VM | Where-Object { $_.Name -notmatch $vmIgnore -and [INT]($_.HWVersion) -lt $HWVers } | Select-Object Name, HWVersion
 
 # Change Log
 ## 1.3 : Added Get-vCheckSetting

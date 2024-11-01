@@ -23,34 +23,32 @@ $PluginCategory = "vSphere"
 $ExcludeDS = "ExcludeMe"
 # End of Settings
 
-$i=0;
-foreach ($eachDS in ($Datastores | Where-Object {$_.Name -notmatch $ExcludeDS} | Where-Object {$_.State -eq "Available"})) {
-   Write-Progress -ID 2 -Parent 1 -Activity $pLang.pluginActivity -Status ($pLang.pluginStatus -f $i, $Datastores.count, $eachDS.Name) -PercentComplete ($i*100/$Datastores.count)
-   
-   $FilePath = $eachDS.DatastoreBrowserPath + '\*\*delta.vmdk*'
-   $fileList = @(Get-ChildItem -Path "$FilePath" | Select-Object Name, FolderPath, FullName)
-   $FilePath = $eachDS.DatastoreBrowserPath + '\*\-*-flat.vmdk'
-   $fileList += Get-ChildItem -Path "$FilePath" | Select-Object Name, FolderPath, FullName
+$i = 0;
+foreach ($eachDS in ($Datastores | Where-Object { $_.Name -notmatch $ExcludeDS } | Where-Object { $_.State -eq "Available" })) {
+    Write-Progress -Id 2 -Parent 1 -Activity $pLang.pluginActivity -Status ($pLang.pluginStatus -f $i, $Datastores.count, $eachDS.Name) -PercentComplete ($i * 100 / $Datastores.count)
 
-   $i++
+    $FilePath = $eachDS.DatastoreBrowserPath + '\*\*delta.vmdk*'
+    $fileList = @(Get-ChildItem -Path "$FilePath" | Select-Object Name, FolderPath, FullName)
+    $FilePath = $eachDS.DatastoreBrowserPath + '\*\-*-flat.vmdk'
+    $fileList += Get-ChildItem -Path "$FilePath" | Select-Object Name, FolderPath, FullName
 
-   foreach ($vmFile in $filelist | Sort-Object FolderPath) 
-   {
-      $vmFile.FolderPath -match '^\[([^\]]+)\] ([^/]+)' > $null
-      $VMName = $matches[2]
-      $eachVM = $FullVM | Where-Object {$_.Name -eq $VMName}
-      if (!$eachVM.snapshot) 
-      { 
-         # Only process VMs without snapshots
-         New-Object -TypeName PSObject -Property @{
-            VM = $eachVM.Name
-            Datacenter = $eachDS.Datacenter
-            Path = $vmFile.FullName
-         }
-      }
-   }
+    $i++
+
+    foreach ($vmFile in $filelist | Sort-Object FolderPath) {
+        $vmFile.FolderPath -match '^\[([^\]]+)\] ([^/]+)' > $null
+        $VMName = $matches[2]
+        $eachVM = $FullVM | Where-Object { $_.Name -eq $VMName }
+        if (!$eachVM.snapshot) {
+            # Only process VMs without snapshots
+            New-Object -TypeName PSObject -Property @{
+                VM = $eachVM.Name
+                Datacenter = $eachDS.Datacenter
+                Path = $vmFile.FullName
+            }
+        }
+    }
 }
-Write-Progress -ID 1 -Activity $pLang.pluginActivity -Status $pLang.Complete -Completed
+Write-Progress -Id 1 -Activity $pLang.pluginActivity -Status $pLang.Complete -Completed
 
 # Changelog
 ## 1.6 : Added setting to exclude DS

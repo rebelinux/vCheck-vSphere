@@ -6,10 +6,10 @@ $Author = "John Sneddon"
 $PluginVersion = 1.1
 $PluginCategory = "vSphere"
 
-# Start of Settings 
-# End of Settings 
+# Start of Settings
+# End of Settings
 
-$Datastores | Where-Object {!$_.ExtensionData.AlarmActionsEnabled} | Select-Object Name, @{n='AlarmActionsEnabled'; e={$_.ExtensionData.AlarmActionsEnabled}}
+$Datastores | Where-Object { !$_.ExtensionData.AlarmActionsEnabled } | Select-Object Name, @{n = 'AlarmActionsEnabled'; e = { $_.ExtensionData.AlarmActionsEnabled } }
 
 # Change Log
 ## 1.0 : Initial version

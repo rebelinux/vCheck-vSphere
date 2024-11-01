@@ -9,7 +9,7 @@
   disabled plugins will be renamed as appropriate to <pluginname>.ps1.disabled
   enabled plugins will be renamed as appropriate to <plugin name>.ps1
 
-  To use, run from the vCheck directory or, if you wish to be perverse, copy to the plugins 
+  To use, run from the vCheck directory or, if you wish to be perverse, copy to the plugins
   directory and rename to "ZZ Select Plugins for Next Run.ps1" and run vCheck as normal.
 
   Great for testing plugins.  When done, untick it...
@@ -42,7 +42,7 @@ param()
 $Title = "Plugin Selection Plugin"
 $Author = "Phil Randal"
 $PluginVersion = 2.1
-$Header =  "Plugin Selection"
+$Header = "Plugin Selection"
 $Comments = "Plugin Selection"
 $Display = "None"
 
@@ -51,24 +51,24 @@ $Display = "None"
 
 $PluginPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 If ($PluginPath -notmatch 'plugins$') {
-  $PluginPath += "\Plugins"
+    $PluginPath += "\Plugins"
 }
 $plugins = Get-ChildItem -Path $PluginPath -Include *.ps1, *.ps1.disabled -Recurse |
-   Sort-Object {[int]($_.Name -replace '\D')} |
-   Select FullName, Name, 
-          @{Label="Plugin";expression={$_.Name -replace '(.*)\.ps1(?:\.disabled|)$', '$1'}},
-          @{Label="Enabled";expression={$_.Name -notmatch '.*\.disabled$'}}
+Sort-Object { [int]($_.Name -replace '\D') } |
+Select-Object FullName, Name,
+@{Label = "Plugin"; expression = { $_.Name -replace '(.*)\.ps1(?:\.disabled|)$', '$1' } },
+@{Label = "Enabled"; expression = { $_.Name -notmatch '.*\.disabled$' } }
 
 $selectallButton_OnClick = {
-	for($i = 0; $i -lt $listbox.Items.Count; $i++) {
-    	$listbox.SetItemChecked($i,$true)
-	}
+    for ($i = 0; $i -lt $listbox.Items.Count; $i++) {
+        $listbox.SetItemChecked($i, $true)
+    }
 }
 
 $deselectallButton_OnClick = {
-	for($i = 0; $i -lt $listbox.Items.Count; $i++) {
-    	$listbox.SetItemChecked($i,$false)
-	}
+    for ($i = 0; $i -lt $listbox.Items.Count; $i++) {
+        $listbox.SetItemChecked($i, $false)
+    }
 }
 
 ## Load the Windows Forms assembly
@@ -76,7 +76,7 @@ $deselectallButton_OnClick = {
 
 ## Create the main form
 $form = New-Object Windows.Forms.Form
-$form.Size = New-Object Drawing.Size @(600,600)
+$form.Size = New-Object Drawing.Size @(600, 600)
 
 ## Create the listbox to hold the items from the pipeline
 $listbox = New-Object Windows.Forms.CheckedListBox
@@ -85,13 +85,13 @@ $listbox.Dock = "Fill"
 $form.Text = "Select the plugins you wish to enable"
 # create list box items from plugin list, tick as enabled where appropriate
 ForEach ($plugin in $Plugins) {
-  $i=$listBox.Items.Add($plugin.Plugin)
-  $listbox.SetItemChecked($i, $Plugin.Enabled)
+    $i = $listBox.Items.Add($plugin.Plugin)
+    $listbox.SetItemChecked($i, $Plugin.Enabled)
 }
 
 ## Create the button panel to hold the OK and Cancel buttons
 $buttonPanel = New-Object Windows.Forms.Panel
-$buttonPanel.Size = New-Object Drawing.Size @(600,30)
+$buttonPanel.Size = New-Object Drawing.Size @(600, 30)
 $buttonPanel.Dock = "Bottom"
 
 ## Create the Cancel button, which will anchor to the bottom right
@@ -145,18 +145,18 @@ $result = $form.ShowDialog()
 
 ## If they pressed OK (or Enter,)
 ## enumerate list of plugins and rename those whose status has changed
-if($result -eq "OK") {
-  $i = 0
-  ForEach ($plugin in $plugins) {
-    $oldname = $plugin.Name
-    $newname = $plugin.Plugin + $(If ($listbox.GetItemChecked($i)) {'.ps1'} else {'.ps1.disabled'})
-    If ($newname -ne $oldname) {
-      If (Test-Path (($plugin.FullName | Split-Path) + "\" + $newname)) {
-        Write-Warning "Attempting to rename ""$oldname"" to ""$newname"", which already exists - please delete or rename the superfluous file and try again"
-      } Else {
-        Rename-Item (($plugin.FullName | Split-Path) + "\" + $oldname) $newname
-      }
+if ($result -eq "OK") {
+    $i = 0
+    ForEach ($plugin in $plugins) {
+        $oldname = $plugin.Name
+        $newname = $plugin.Plugin + $(If ($listbox.GetItemChecked($i)) { '.ps1' } else { '.ps1.disabled' })
+        If ($newname -ne $oldname) {
+            If (Test-Path (($plugin.FullName | Split-Path) + "\" + $newname)) {
+                Write-Warning "Attempting to rename ""$oldname"" to ""$newname"", which already exists - please delete or rename the superfluous file and try again"
+            } Else {
+                Rename-Item (($plugin.FullName | Split-Path) + "\" + $oldname) $newname
+            }
+        }
+        $i++
     }
-    $i++
-  }
 }

@@ -1,5 +1,5 @@
 $Title = "VSAN Configuration Maximum Disk Group Per Host Report"
-$Header =  "VSAN Configuration Maximum - Disk Group Per Host"
+$Header = "VSAN Configuration Maximum - Disk Group Per Host"
 $Display = "Table"
 $Author = "William Lam"
 $PluginVersion = 1.2
@@ -17,22 +17,23 @@ $vsanWarningThreshold = Get-vCheckSetting $Title "vsanWarningThreshold" $vsanWar
 $vsanDiskGroupMaximum = 5
 
 foreach ($cluster in $clusviews) {
-   if($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
-      $vmhosts = $cluster.Host
-      foreach ($vmhost in $vmhosts | Sort-Object -Property Name) {
-         $vmhostView = Get-View $vmhost -Property Name,ConfigManager.VsanSystem
-         $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
-         # Number of DG's per Host
-         $diskGroups = ($vsanSys.Config.StorageInfo.DiskMapping | Measure-Object).count
-         $checkValue = [int]($diskGroups/$vsanDiskGroupMaximum * 100)
+    if ($cluster.ConfigurationEx.VsanConfigInfo.Enabled) {
+        $vmhosts = $cluster.Host
+        foreach ($vmhost in $vmhosts | Sort-Object -Property Name) {
+            $vmhostView = Get-View $vmhost -Property Name, ConfigManager.VsanSystem
+            $vsanSys = Get-View -Id $vmhostView.ConfigManager.VsanSystem
+            # Number of DG's per Host
+            $diskGroups = ($vsanSys.Config.StorageInfo.DiskMapping | Measure-Object).count
+            $checkValue = [int]($diskGroups / $vsanDiskGroupMaximum * 100)
 
-         if($checkValue -gt $vsanWarningThreshold) {
-            New-Object -TypeName PSObject -Property @{
-               "VMHost" = $vmhostView.Name
-               "DiskGroupCount" = $diskGroups }
-         }
-      }
-   }
+            if ($checkValue -gt $vsanWarningThreshold) {
+                New-Object -TypeName PSObject -Property @{
+                    "VMHost" = $vmhostView.Name
+                    "DiskGroupCount" = $diskGroups
+                }
+            }
+        }
+    }
 }
 
 $Comments = "VSAN hosts approaching {0}% limit of {1} Disk Groups per host" -f $vsanWarningThreshold, $vsanDiskGroupMaximum

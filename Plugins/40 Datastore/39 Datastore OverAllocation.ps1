@@ -5,7 +5,7 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.4
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # Datastore OverAllocation %
 $OverAllocation = 50
 # Exclude these datastores from report
@@ -18,18 +18,17 @@ $ExcludedDatastores = Get-vCheckSetting $Title "ExcludedDatastores" $ExcludedDat
 
 $filteredstorageviews = $storageviews | Where-Object { $_.Name -notmatch $ExcludedDatastores }
 
-foreach ($storage in $filteredstorageviews)
-{
-   if ($storage.Summary.Uncommitted -gt "0")
-   {
-      $allocation = [math]::round(((($storage.Summary.Capacity - $storage.Summary.FreeSpace) + $storage.Summary.Uncommitted)*100)/$storage.Summary.Capacity,0)
-      
-      if (($allocation-100) -gt $OverAllocation) {
-         New-Object -TypeName PSObject -Property @{
-            "Datastore" = $storage.name
-            "OverAllocation" = $overAllocation }
-      }
-   }
+foreach ($storage in $filteredstorageviews) {
+    if ($storage.Summary.Uncommitted -gt "0") {
+        $allocation = [math]::round(((($storage.Summary.Capacity - $storage.Summary.FreeSpace) + $storage.Summary.Uncommitted) * 100) / $storage.Summary.Capacity, 0)
+
+        if (($allocation - 100) -gt $OverAllocation) {
+            New-Object -TypeName PSObject -Property @{
+                "Datastore" = $storage.name
+                "OverAllocation" = $overAllocation
+            }
+        }
+    }
 }
 
 $Header = ("Datastore OverAllocation Over {0}%: [count]" -f $OverAllocation)

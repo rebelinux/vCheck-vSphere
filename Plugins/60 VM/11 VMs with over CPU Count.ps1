@@ -4,7 +4,7 @@ $Author = "Alan Renouf, Bill Wall"
 $PluginVersion = 1.3
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # Define the maximum amount of vCPUs your VMs are allowed
 $vCPU = 2
 # Include Powered off VMs?
@@ -15,9 +15,9 @@ $vCPUPoweredOff = $false
 $vCPU = Get-vCheckSetting $Title "vCPU" $vCPU
 
 If ($vCPUPoweredOff) {
-    $VM | Where-Object {$_.NumCPU -gt $vCPU} | Select-Object Name, PowerState, NumCPU | Sort-Object -Property NumCPU -Descending | Sort-Object -Property Name
+    $VM | Where-Object { $_.NumCPU -gt $vCPU } | Select-Object Name, PowerState, NumCPU | Sort-Object -Property NumCPU -Descending | Sort-Object -Property Name
 } else {
-    $VM |  Where-Object {$_.NumCPU -match "PoweredOn"} | Where-Object {$_.NumCPU -gt $vCPU} | Select-Object Name, PowerState, NumCPU | Sort-Object -Property NumCPU -Descending | Sort-Object -Property Name
+    $VM |  Where-Object { $_.NumCPU -match "PoweredOn" } | Where-Object { $_.NumCPU -gt $vCPU } | Select-Object Name, PowerState, NumCPU | Sort-Object -Property NumCPU -Descending | Sort-Object -Property Name
 }
 
 $Header = ("VMs with over {0} vCPUs: [count]" -f $vCPU)

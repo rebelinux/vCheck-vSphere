@@ -6,7 +6,7 @@ $Author = "Alan Renouf"
 $PluginVersion = 1.2
 $PluginCategory = "vSphere"
 
-# Start of Settings 
+# Start of Settings
 # Minimum number of slots available in a cluster
 $numslots = 10
 # End of Settings
@@ -14,20 +14,20 @@ $numslots = 10
 # Update settings where there is an override
 $numslots = Get-vCheckSetting $Title "numslots" $numslots
 
-If ($vSphere){
-   Foreach ($Cluster in ($Clusters)){
-      If ($Cluster.ExtensionData.Configuration.DasConfig.Enabled -eq $true -and 
-          $Cluster.ExtensionData.Configuration.DasConfig.AdmissionControlPolicy.getType() -eq [VMware.Vim.ClusterFailoverLevelAdmissionControlPolicy]){
-         $SlotDetails = $Cluster.ExtensionData.RetrieveDasAdvancedRuntimeInfo()
-         
-         if ($SlotDetails.UnreservedSlots -lt $numslots) {
-            [PSCustomObject] @{
-               Cluster = $Cluster.Name
-               TotalSlots = $SlotDetails.TotalSlots
-               UsedSlots = $SlotDetails.UsedSlots
-               AvailableSlots = $SlotDetails.UnreservedSlots
+If ($vSphere) {
+    Foreach ($Cluster in ($Clusters)) {
+        If ($Cluster.ExtensionData.Configuration.DasConfig.Enabled -eq $true -and
+            $Cluster.ExtensionData.Configuration.DasConfig.AdmissionControlPolicy.getType() -eq [VMware.Vim.ClusterFailoverLevelAdmissionControlPolicy]) {
+            $SlotDetails = $Cluster.ExtensionData.RetrieveDasAdvancedRuntimeInfo()
+
+            if ($SlotDetails.UnreservedSlots -lt $numslots) {
+                [PSCustomObject] @{
+                    Cluster = $Cluster.Name
+                    TotalSlots = $SlotDetails.TotalSlots
+                    UsedSlots = $SlotDetails.UsedSlots
+                    AvailableSlots = $SlotDetails.UnreservedSlots
+                }
             }
-         }
-      }
-   }
+        }
+    }
 }

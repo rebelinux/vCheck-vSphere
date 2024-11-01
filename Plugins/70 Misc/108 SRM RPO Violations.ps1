@@ -11,7 +11,7 @@
 # $ActiveViolationsOnly - report can display all RPO events based on above criteria, or only active unresolved ones
 #
 # Note, the RPO violation start time is based on the violations found within the configured event search criteria.
-# For example, if you are only searching through four hours of events, then the ViolationStart will reflect 
+# For example, if you are only searching through four hours of events, then the ViolationStart will reflect
 # a start time within that four hour window, even though the violation may have actually begun earlier. This is
 # controlled with the $MaxSampleVIEvent variable in '00 Connection Plugin for vCenter.ps1'.
 #
@@ -54,43 +54,41 @@ $ActiveViolationsOnly = Get-vCheckSetting $Title "ActiveViolationsOnly" $ActiveV
 #  modified by Joel Gibson
 
 Foreach ($RPOvm in ($VM | Where-Object { $_.name -match $VMNameRegex })) {
-   $RPOEvents = Get-VIEventPlus -Entity $RPOvm -EvenTypeId "hbr.primary.RpoTooLowForServerEvent" | Where-Object { $_.Vm.Name -eq $RPOvm.Name } | Select-Object EventTypeId, CreatedTime, FullFormattedMessage, @{Name="VMName";Expression={$_.Vm.Name}} | Sort-Object CreatedTime
-   if ($RPOEvents) {
-      $Count = 0
+    $RPOEvents = Get-VIEventPlus -Entity $RPOvm -EvenTypeId "hbr.primary.RpoTooLowForServerEvent" | Where-Object { $_.Vm.Name -eq $RPOvm.Name } | Select-Object EventTypeId, CreatedTime, FullFormattedMessage, @{Name = "VMName"; Expression = { $_.Vm.Name } } | Sort-Object CreatedTime
+    if ($RPOEvents) {
+        $Count = 0
 
-      do {
+        do {
             $details = "" | Select-Object VMName, ViolationStart, ViolationEnd, Mins
             if ($RPOEvents[$count].EventTypeID -match "Violated") {
-               If (-not $details.Start) {
-                  $Details.VMName = $RPOEvents[$Count].VMName
-                  $Details.ViolationStart = $RPOEvents[$Count].CreatedTime
-                  Do {
-                     $Count++
-                  } until (($RPOEvents[$Count].EventTypeID -match "Restored") -or ($Count -gt $RPOEvents.Count))
-                  if ($RPOEvents[$count].EventTypeID -match "Restored") {
-                     $details.ViolationEnd = $RPOEvents[$Count].CreatedTime
-                     $Time = $details.ViolationEnd - $details.ViolationStart
-                     
-                  } Else {
-                     $details.ViolationEnd = "No End Date"
-                     $Time = $(Get-Date) - $details.ViolationStart
-                     
-                  }
-                  $details.Mins = ("{0:N2}" -f $Time.TotalMinutes)
-               }
+                If (-not $details.Start) {
+                    $Details.VMName = $RPOEvents[$Count].VMName
+                    $Details.ViolationStart = $RPOEvents[$Count].CreatedTime
+                    Do {
+                        $Count++
+                    } until (($RPOEvents[$Count].EventTypeID -match "Restored") -or ($Count -gt $RPOEvents.Count))
+                    if ($RPOEvents[$count].EventTypeID -match "Restored") {
+                        $details.ViolationEnd = $RPOEvents[$Count].CreatedTime
+                        $Time = $details.ViolationEnd - $details.ViolationStart
+
+                    } Else {
+                        $details.ViolationEnd = "No End Date"
+                        $Time = $(Get-Date) - $details.ViolationStart
+
+                    }
+                    $details.Mins = ("{0:N2}" -f $Time.TotalMinutes)
+                }
             }
 
             ## filter the results based on the number of minutes an RPO has been exceeded by
             ## filter the results based on unresolved violations, if desired
-            if ($details.Mins -gt $RPOviolationMins)
-            {
-               if ((-not $ActiveViolationsOnly) -or ($ActiveViolationsOnly -and $details.ViolationEnd -eq "No End Date"))
-               {
-                  $details
-               }
+            if ($details.Mins -gt $RPOviolationMins) {
+                if ((-not $ActiveViolationsOnly) -or ($ActiveViolationsOnly -and $details.ViolationEnd -eq "No End Date")) {
+                    $details
+                }
             }
             $Count++
-      } until ($count -gt $RPOEvents.Count)
-   }
+        } until ($count -gt $RPOEvents.Count)
+    }
 }
 ## End of code block obtained from: http://www.virtu-al.net/2013/06/14/reporting-on-rpo-violations-from-vsphere-replication/.
