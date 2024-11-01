@@ -14,7 +14,7 @@ $PowerPolicy = "dynamic"
 $PowerPolicy = Get-vCheckSetting $Title "PowerPolicy" $PowerPolicy
 
 $hostResults = @()
-Foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "Connected|Maintenance" })) {
+Foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "^Connected|Maintenance" })) {
     If ($esxhost.config.PowerSystemInfo.CurrentPolicy.ShortName -ne $PowerPolicy) {
         $myObj = "" | Select-Object VMHost, PowerPolicy
         $myObj.VMHost = $esxhost.Name

@@ -17,7 +17,7 @@ $MaxLinkFails = Get-vCheckSetting $Title "MaxLinkFails" $MaxLinkFails
 $MaxCRCerrors = Get-vCheckSetting $Title "MaxCRCerrors" $MaxCRCerrors
 
 $listwithhbaerrors = @()
-foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "Connected|Maintenance" })) {
+foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "^Connected|Maintenance" })) {
 
     $esxcli = Get-EsxCli -V2 -VMHost $esxhost.Name
     Get-VMHostHba -VMHost $esxhost.Name -Type FibreChannel | ForEach-Object {
@@ -39,4 +39,3 @@ foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -m
 }
 $listwithhbaerrors
 $Header = ("Hosts with more than {0} Link Failures and {1} CRC errors: [count]" -f $MaxLinkFails, $MaxCRCerrors)
-

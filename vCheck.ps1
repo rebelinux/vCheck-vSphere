@@ -128,7 +128,7 @@ Function Get-PluginID ($Filename) {
     # Get the identifying information for a plugin script
     $file = Get-Content $Filename
     $Title = Get-ID-String $file "Title"
-    if (!$Title) { $Title = $Filename }
+    if (-Not $Title) { $Title = $Filename }
     $PluginVersion = Get-ID-String $file "PluginVersion"
     $Author = Get-ID-String $file "Author"
     $Ver = "{0:N1}" -f $PluginVersion
@@ -170,7 +170,7 @@ Function Invoke-Settings {
         $EndLine = ($file | Select-String -Pattern "# End of Settings").LineNumber
         if ($EndLine) { $EndLineActual = $file[$EndLine - 1] }
 
-        if (!(($OriginalLine + 1) -eq $EndLine)) {
+        if (-Not (($OriginalLine + 1) -eq $EndLine)) {
 
             $Array = @()
             $Line = $OriginalLine + 1
@@ -271,7 +271,7 @@ Function Invoke-HTMLSettings {
         $OriginalLine = ($file | Select-String -Pattern "# Start of Settings").LineNumber
         $EndLine = ($file | Select-String -Pattern "# End of Settings").LineNumber
 
-        if (!(($OriginalLine + 1) -eq $EndLine)) {
+        if (-Not (($OriginalLine + 1) -eq $EndLine)) {
 
             $Line = $OriginalLine
             $PluginInfo = Get-PluginID $Filename
@@ -824,7 +824,7 @@ if ($job) {
         }
     }
     # if no valid plugins specified, fall back to default
-    if (!$vCheckPlugins) {
+    if (-Not $vCheckPlugins) {
         $vCheckPlugins = Get-ChildItem -Path $PluginsFolder -Filter "*.ps1" -Recurse | Sort-Object FullName
     }
 } else {
@@ -848,7 +848,7 @@ $SetupSetting = Invoke-Expression (($file[$SetupLine]).Split("="))[1]
 
 $vcvars = @("SetupWizard", "reportHeader", "SMTPSRV", "EmailFrom", "EmailTo", "EmailSubject", "DisplaytoScreen", "SendEmail", "SendAttachment", "TimeToRun", "PluginSeconds", "Style", "Date")
 foreach ($vcvar in $vcvars) {
-    if (!($(Get-Variable -Name "$vcvar" -ErrorAction 'SilentlyContinue'))) {
+    if (-Not ($(Get-Variable -Name "$vcvar" -ErrorAction 'SilentlyContinue'))) {
         Write-Error ($lang.varUndefined -f $vcvar)
     }
 }
@@ -858,7 +858,7 @@ $global:ReportResources = @{ }
 
 ## Set the StylePath and include it
 $StylePath = $ScriptPath + "\Styles\" + $Style
-if (!(Test-Path ($StylePath))) {
+if (-Not (Test-Path ($StylePath))) {
     # The path is not valid
     # Use the default style
     Write-Warning "Style path ($($StylePath)) is not valid"
@@ -1043,13 +1043,13 @@ if (-not $GUIConfig) {
     $embedReport | Out-File -Encoding ASCII -FilePath $Filename
 
     # Display to screen
-    if ($DisplayToScreen -and (!($emptyReport -and !$DisplayReportEvenIfEmpty))) {
+    if ($DisplayToScreen -and (-Not ($emptyReport -and -Not $DisplayReportEvenIfEmpty))) {
         Write-CustomOut $lang.HTMLdisp
         Invoke-Item $Filename
     }
 
     # Generate email
-    if ($SendEmail -and (!($emptyReport -and !$EmailReportEvenIfEmpty))) {
+    if ($SendEmail -and (-Not ($emptyReport -and -Not $EmailReportEvenIfEmpty))) {
         Write-CustomOut $lang.emailSend
         $msg = New-Object System.Net.Mail.MailMessage ($EmailFrom, $EmailTo)
         # If CC address specified, add

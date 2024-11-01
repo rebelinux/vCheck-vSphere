@@ -38,7 +38,7 @@ foreach ($eachDS in ($Datastores | Where-Object { $_.Name -notmatch $ExcludeDS }
         $vmFile.FolderPath -match '^\[([^\]]+)\] ([^/]+)' > $null
         $VMName = $matches[2]
         $eachVM = $FullVM | Where-Object { $_.Name -eq $VMName }
-        if (!$eachVM.snapshot) {
+        if (-Not $eachVM.snapshot) {
             # Only process VMs without snapshots
             New-Object -TypeName PSObject -Property @{
                 VM = $eachVM.Name

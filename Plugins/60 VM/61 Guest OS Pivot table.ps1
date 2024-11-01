@@ -17,9 +17,9 @@ $FullVM | ForEach-Object {
     if ($_.Config.AlternateGuestName) { $VMOSversion = $_.Config.AlternateGuestName }
     if ($_.Guest.GuestFullName) { $VMOSversion = $_.Guest.GuestFullName }
     # Seeing if any of these options worked
-    if (!($VMOSversion)) {
+    if (-Not ($VMOSversion)) {
         # No 'version' so checking for tools
-        if (!($_.Guest.ToolsStatus.Value__ )) {
+        if (-Not ($_.Guest.ToolsStatus.Value__ )) {
             $VMOSversion = "Unknown - no VMTools"
         } else {
             # Still no 'version', must be old tools

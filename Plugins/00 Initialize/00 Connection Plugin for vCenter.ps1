@@ -123,19 +123,19 @@ switch ($platform.OSFamily) {
 
         if (Get-Module -Name $pcliCore -ListAvailable) {
             $psmodulePresent = $true
-            if (!(Get-Module -Name $pcliCore)) {
+            if (-Not (Get-Module -Name $pcliCore)) {
                 Import-Module -Name $pcliCore
             }
         }
 
         if (Get-PSSnapin -Name $pcliCore -Registered -ErrorAction SilentlyContinue) {
             $pssnapinPresent = $true
-            if (!(Get-PSSnapin -Name $pcliCore -ErrorAction SilentlyContinue)) {
+            if (-Not (Get-PSSnapin -Name $pcliCore -ErrorAction SilentlyContinue)) {
                 Add-PSSnapin -Name $pcliCore
             }
         }
 
-        if (!$pssnapinPresent -and !$psmodulePresent) {
+        if (-Not $pssnapinPresent -and -Not $psmodulePresent) {
             Write-Error "Can't find PowerCLI. Is it installed?"
             return
         }
@@ -449,7 +449,7 @@ function Get-VIEventPlus {
             Select-Object -First 1 |
             Select-Object -ExpandProperty MoRef
         }
-        if (!$Entity) {
+        if (-Not $Entity) {
             $Entity = @(Get-Folder -NoRecursion)
         }
         $entity | ForEach-Object {

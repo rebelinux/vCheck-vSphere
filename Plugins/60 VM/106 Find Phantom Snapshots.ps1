@@ -14,7 +14,7 @@ $OutputPhantomSnapshots = @()
 ForEach ($theVM in $VM) {
     ForEach ($theVMdisk in ($theVM | Get-HardDisk | Where-Object { $_.Filename -match "-\d{6}.vmdk" })) {
         # Find VM's which don't have normal Snapshots registered
-        if (!(Get-Snapshot $theVM)) {
+        if (-Not (Get-Snapshot $theVM)) {
             New-Object -TypeName PSObject -Property @{
                 "VM Name" = $theVM.name
                 "VMDK Path" = $theVMdisk.Filename

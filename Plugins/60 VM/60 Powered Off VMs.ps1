@@ -21,14 +21,7 @@ $IgnoredVMs = Get-vCheckSetting $Title "IgnoredVMs" $IgnoredVMs
 $IgnoredVMpath = Get-vCheckSetting $Title "IgnoredVMpath" $IgnoredVMpath
 $PoweredOffDays = Get-vCheckSetting $Title "PoweredOffDays" $PoweredOffDays
 
-$VM | Where-Object { $_.ExtensionData.Config.ManagedBy.ExtensionKey -ne 'com.vmware.vcDr' -and
-    $_.PowerState -eq "PoweredOff" -and
-    $_.LastPoweredOffDate -lt $date.AddDays(-$PoweredOffDays) -and
-    $_.Name -notmatch $IgnoredVMs -and
-    $_.Folder.Name -notmatch $IgnoredVMFolder -and
-    $_.ExtensionData.Config.Files.VmPathName -notmatch $IgnoredVMpath } |
-Select-Object -Property Name, LastPoweredOffDate, @{l = 'Folder'; e = { $_.Folder.Name } }, Notes |
-Sort-Object -Property LastPoweredOffDate
+$VM | Where-Object { $_.ExtensionData.Config.ManagedBy.ExtensionKey -ne 'com.vmware.vcDr' -and $_.PowerState -eq "PoweredOff" -and $_.LastPoweredOffDate -lt $date.AddDays(-$PoweredOffDays) -and $_.Name -notmatch $IgnoredVMs -and $_.Folder.Name -notmatch $IgnoredVMFolder -and $_.ExtensionData.Config.Files.VmPathName -notmatch $IgnoredVMpath } | Select-Object -Property Name, LastPoweredOffDate, @{l = 'Folder'; e = { $_.Folder.Name } }, Notes | Sort-Object -Property LastPoweredOffDate
 
 $Comments = ("May want to consider deleting VMs that have been powered off for more than {0} days" -f $PoweredOffDays)
 

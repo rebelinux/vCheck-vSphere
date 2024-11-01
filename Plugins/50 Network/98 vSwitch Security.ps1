@@ -34,11 +34,11 @@ if ($Revision) {
         $VersionOK = $true
         if ($Revision -ge 2548067) {
             #PowerCLI 6+
-            if (!(Get-Module -Name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
-                Import-Module VMware.VimAutomation.Vds
+            if (-Not (Get-Module -Name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
+                Import-Module -Name VMware.VimAutomation.Vds
             } else {
                 # Add required Snap-In
-                if (!(Get-PSSnapin -name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
+                if (-Not (Get-PSSnapin -Name VMware.VimAutomation.Vds -ErrorAction SilentlyContinue)) {
                     Add-PSSnapin VMware.VimAutomation.Vds
                 }
             }

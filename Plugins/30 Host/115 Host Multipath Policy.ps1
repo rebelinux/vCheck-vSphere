@@ -14,7 +14,7 @@ $MultipathPolicy = "VMW_PSP_RR"
 $MultipathPolicy = Get-vCheckSetting $Title "MultipathPolicy" $MultipathPolicy
 
 $lunResults = @()
-Foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "Connected|Maintenance" })) {
+Foreach ($esxhost in ($HostsViews | Where-Object { $_.Runtime.ConnectionState -match "^Connected|Maintenance" })) {
     $esxhost | ForEach-Object { $_.config.storageDevice.multipathInfo.lun } | Where-Object { $_.path.count -gt 1 } | Where-Object { $_.policy.policy -notmatch $MultipathPolicy } | ForEach-Object {
         $myObj = "" | Select-Object VMHost, LunID, Policy
         $myObj.VMHost = $esxhost.Name

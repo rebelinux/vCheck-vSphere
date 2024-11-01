@@ -95,7 +95,7 @@ function Get-vCheckPlugin {
             $pluginObjectList += $pluginObject
         }
 
-        if (!$installed) {
+        if (-Not $installed) {
             try {
                 $webClient = New-Object system.net.webclient
                 if ($proxy) {
@@ -120,7 +120,7 @@ function Get-vCheckPlugin {
                     ForEach-Object {
                         $_.status = "New Version Available - " + $plugin.version
                     }
-                    if (!($pluginObjectList | Where-Object { $_.name -eq $plugin.name })) {
+                    if (-Not ($pluginObjectList | Where-Object { $_.name -eq $plugin.name })) {
                         $pluginObject = New-Object PSObject
                         $pluginObject | Add-Member -MemberType NoteProperty -Name name -Value $plugin.name
                         $pluginObject | Add-Member -MemberType NoteProperty -Name description -Value $plugin.description
@@ -337,7 +337,7 @@ Function Get-PluginSettings {
     $file = Get-Content $filename
     $OriginalLine = ($file | Select-String -SimpleMatch "# Start of Settings").LineNumber
     $EndLine = ($file | Select-String -SimpleMatch "# End of Settings").LineNumber
-    if (!(($OriginalLine + 1) -eq $EndLine)) {
+    if (-Not (($OriginalLine + 1) -eq $EndLine)) {
         $Line = $OriginalLine
         do {
             $Question = $file[$Line]
@@ -387,7 +387,7 @@ Function Set-PluginSettings {
     $EndLine = ($file | Select-String -SimpleMatch "# End of Settings").LineNumber
     $PluginName = ($filename.split("\")[-1]).split(".")[0]
     Write-Warning "`nProcessing - $PluginName"
-    if (!(($OriginalLine + 1) -eq $EndLine)) {
+    if (-Not (($OriginalLine + 1) -eq $EndLine)) {
         $Array = @()
         $Line = $OriginalLine
         do {
@@ -403,7 +403,7 @@ Function Set-PluginSettings {
                     $Found = $true
                 }
             }
-            If (!$Found) {
+            If (-Not $Found) {
                 # Check if the current setting is in speech marks
                 $String = $false
                 if ($CurSet -match '"') {
@@ -561,7 +561,7 @@ Function Import-vCheckSettings {
         [Parameter(mandatory = $false)] [String]$csvfile = "$vCheckPath\vCheckSettings.csv"
     )
 
-    If (!(Test-Path $csvfile)) {
+    If (-Not (Test-Path $csvfile)) {
         $csvfile = Read-Host "Enter full path to settings CSV file you want to import"
     }
     $Import = Import-Csv $csvfile
@@ -606,7 +606,7 @@ Function Import-vCheckSettingsXML {
         [Parameter(mandatory = $false)] [String]$xmlFile = "$vCheckPath\vCheckSettings.xml"
     )
 
-    If (!(Test-Path $xmlFile)) {
+    If (-Not (Test-Path $xmlFile)) {
         $xmlFile = Read-Host "Enter full path to settings XML file you want to import"
     }
     $Import = [xml](Get-Content $xmlFile)
@@ -870,8 +870,8 @@ Function Upgrade-vCheckDirectory {
     $TS = Get-Now  # TS means time stamp
 
     # Test that directories exist
-    if ( !(Test-Path -Path $CurrentvCheckPath) ) { break }
-    if ( !(Test-Path -Path $NewvCheckSource) ) { break }
+    if ( -Not (Test-Path -Path $CurrentvCheckPath) ) { break }
+    if ( -Not (Test-Path -Path $NewvCheckSource) ) { break }
     $OldvCheckPath = "$($CurrentvCheckPath)_old_$($TS)"
     $OldvCheckVariables = "$($OldvCheckPath)\vCheckVariables_$($TS).txt"
 

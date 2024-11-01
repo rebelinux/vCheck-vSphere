@@ -5,7 +5,7 @@ $VCEventAge = 1
 $VCEvntlgAge = 1
 # End of Settings
 
-if (! $VCSA) {
+if (-Not $VCSA) {
     $ConvDate = [System.Management.ManagementDateTimeConverter]::ToDmtfDateTime([DateTime]::Now.AddDays(-$VCEvntlgAge))
     If (Test-Path $Credfile) {
         $LoadedCredentials = Import-Clixml $Credfile

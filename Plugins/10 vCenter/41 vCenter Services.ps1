@@ -1,7 +1,7 @@
 # Start of Settings
 # End of Settings
 
-If (! $VCSA) {
+If (-Not $VCSA) {
     If (Test-Path $Credfile) {
         $LoadedCredentials = Import-Clixml $Credfile
         $creds = New-Object System.Management.Automation.PsCredential($LoadedCredentials.Username, ($LoadedCredentials.Password | ConvertTo-SecureString))

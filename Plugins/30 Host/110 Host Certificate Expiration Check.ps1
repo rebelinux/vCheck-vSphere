@@ -63,7 +63,7 @@ namespace PKI {
     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
     try { $Response = $WebRequest.GetResponse() }
     catch {Out-Null}
-    if ($WebRequest.ServicePoint.Certificate -ne $null) {
+    if ($null -ne $WebRequest.ServicePoint.Certificate) {
         $Cert = [Security.Cryptography.X509Certificates.X509Certificate2]$WebRequest.ServicePoint.Certificate.Handle
         try { $SAN = ($Cert.Extensions | Where-Object { $_.Oid.Value -eq "2.5.29.17" }).Format(0) -split ", " }
         catch { $SAN = $null }

@@ -19,7 +19,7 @@ $ADAdminGroup = "ESX Admins"
 $ADFailedHosts = @()
 $ADOKHosts = @()
 
-ForEach ($ADHost in $VMH | Where-Object { $_.ConnectionState -match "Connected|Maintenance" }) {
+ForEach ($ADHost in $VMH | Where-Object { $_.ConnectionState -match "^Connected|Maintenance" }) {
     # Get authetication settings
     $myADAuth = $ADHost | Get-VMHostAuthentication
     # Get Admin Group settings
